@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
+import API_URL from "../config";
 
 const NotificationContext = createContext();
 
@@ -14,7 +15,7 @@ export const NotificationProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },

@@ -1,4 +1,5 @@
 import React from "react";
+import API_URL from "../config";
 
 const MaterialCard = ({ title, fileUrl, category, uploadedAt, author }) => {
   // Check if author is an object and access its name property
@@ -15,7 +16,7 @@ const MaterialCard = ({ title, fileUrl, category, uploadedAt, author }) => {
       </div>
       {fileUrl && (
         <a
-          href={`http://localhost:4000${fileUrl}`}
+          href={`${API_URL}${fileUrl}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block mt-3 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"

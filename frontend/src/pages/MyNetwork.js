@@ -6,6 +6,7 @@ import { useNotification } from "../context/NotificationContext";
 import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_URL from "../config";
 
 const MyNetwork = () => {
   const { user } = useAuthContext();
@@ -24,7 +25,7 @@ const MyNetwork = () => {
     if (!user?.token) return;
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -40,7 +41,7 @@ const MyNetwork = () => {
         // Fetch details of users who sent friend requests
         const requestsPromises = userData.friendRequests.map(async (requestId) => {
           const reqResponse = await fetch(
-            `http://localhost:4000/api/users/${requestId}`,
+            `${API_URL}/api/users/${requestId}`,
             {
               headers: {
                 Authorization: `Bearer ${user.token}`,
@@ -69,7 +70,7 @@ const MyNetwork = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/users/connections",
+        `${API_URL}/api/users/connections`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -94,7 +95,7 @@ const MyNetwork = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/accept-friend-request/${requesterId}`,
+        `${API_URL}/api/users/accept-friend-request/${requesterId}`,
         {
           method: "POST",
           headers: {
@@ -162,7 +163,7 @@ const MyNetwork = () => {
                         className="rounded-full object-cover mr-4"
                         src={
                           request.profileImage
-                            ? `http://localhost:4000${request.profileImage}`
+                            ? `${API_URL}${request.profileImage}`
                             : ""
                         }
                         alt={request.name}
@@ -208,7 +209,7 @@ const MyNetwork = () => {
                     className="rounded-full object-cover mr-4 border-2 border-primary-200"
                     src={
                       connection.profileImage
-                        ? `http://localhost:4000${connection.profileImage}`
+                        ? `${API_URL}${connection.profileImage}`
                         : ""
                     }
                     alt={connection.name}

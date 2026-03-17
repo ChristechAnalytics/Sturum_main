@@ -9,7 +9,7 @@ services:
         value: production
       - key: MONGO_URI_COMPASS
         sync: false
-      - key: JWT_SECRET
+      - key: SECRET
         sync: false
       - key: FRONTEND_URL
         sync: false

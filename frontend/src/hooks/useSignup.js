@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../config";
 
 export const useSignup = () => {
   const [error, setError] = useState(null);
@@ -21,7 +22,7 @@ export const useSignup = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/signup", {
+      const response = await fetch(`${API_URL}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -59,7 +60,7 @@ export const useSignup = () => {
       console.error("Signup error:", error);
       
       if (error.message === "Failed to fetch" || error.name === "TypeError") {
-        setError("Cannot connect to server. Please make sure the backend server is running on http://localhost:4000");
+        setError("Cannot connect to server. Please check your connection and try again.");
       } else {
         setError(error.message || "An unexpected error occurred. Please try again.");
       }

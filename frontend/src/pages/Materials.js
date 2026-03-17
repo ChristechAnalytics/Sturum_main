@@ -5,6 +5,7 @@ import NavbarMP from "../DEPT-components/NavbarMP";
 import MaterialCard from "../DEPT-components/MateralCard";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { FaTimes } from "react-icons/fa";
+import API_URL from "../config";
 
 Modal.setAppElement("#root");
 
@@ -27,7 +28,7 @@ const Materials = () => {
         throw new Error("User is not authenticated");
       }
 
-      const response = await fetch(`http://localhost:4000/api/materials`, {
+      const response = await fetch(`${API_URL}/api/materials`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -99,7 +100,7 @@ const Materials = () => {
         console.log(`${key}: ${value}`);
       }
 
-      const response = await fetch("http://localhost:4000/api/materials", {
+      const response = await fetch(`${API_URL}/api/materials`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${user.token}`,

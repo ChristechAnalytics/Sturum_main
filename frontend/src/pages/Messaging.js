@@ -3,6 +3,7 @@ import io from "socket.io-client";
 import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
+import API_URL from "../config";
 
 const Messaging = () => {
   const { user } = useAuthContext();
@@ -18,7 +19,7 @@ const Messaging = () => {
     const fetchConnections = async () => {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/users/connections",
+          `${API_URL}/api/users/connections`,
           {
             headers: {
               Authorization: `Bearer ${user?.token}`,
@@ -41,7 +42,7 @@ const Messaging = () => {
       const fetchMessages = async () => {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/messages/${currentChat}`,
+            `${API_URL}/api/messages/${currentChat}`,
             {
               headers: {
                 Authorization: `Bearer ${user?.token}`,
@@ -70,7 +71,7 @@ const Messaging = () => {
   // Initialize socket connection
   useEffect(() => {
     if (!socketRef.current) {
-      socketRef.current = io("http://localhost:4000");
+      socketRef.current = io(API_URL);
     }
 
     const socket = socketRef.current;
@@ -125,7 +126,7 @@ const Messaging = () => {
     setMessageText(""); // Clear input immediately for better UX
 
     try {
-      const response = await fetch("http://localhost:4000/api/messages", {
+      const response = await fetch(`${API_URL}/api/messages`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

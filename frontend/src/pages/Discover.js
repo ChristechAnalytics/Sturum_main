@@ -6,6 +6,7 @@ import NavbarMP from "../DEPT-components/NavbarMP";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaUserPlus, FaCheck, FaSpinner } from "react-icons/fa";
+import API_URL from "../config";
 
 const Discover = () => {
   const { user } = useAuthContext();
@@ -20,7 +21,7 @@ const Discover = () => {
 
     try {
       // Get current user's data
-      const currentUserResponse = await fetch("http://localhost:4000/api/users/me", {
+      const currentUserResponse = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -55,7 +56,7 @@ const Discover = () => {
       const requestsPromises = usersList.map(async (discoverUser) => {
         try {
           const userResponse = await fetch(
-            `http://localhost:4000/api/users/${discoverUser._id}`,
+            `${API_URL}/api/users/${discoverUser._id}`,
             {
               headers: {
                 Authorization: `Bearer ${user.token}`,
@@ -87,7 +88,7 @@ const Discover = () => {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:4000/api/users/discover", {
+      const response = await fetch(`${API_URL}/api/users/discover`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -125,7 +126,7 @@ const Discover = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/friend-request/${userId}`,
+        `${API_URL}/api/users/friend-request/${userId}`,
         {
           method: "POST",
           headers: {
@@ -223,7 +224,7 @@ const Discover = () => {
                         <img
                           src={
                             discoverUser.profileImage
-                              ? `http://localhost:4000${discoverUser.profileImage}`
+                              ? `${API_URL}${discoverUser.profileImage}`
                               : ""
                           }
                           alt={discoverUser.name}

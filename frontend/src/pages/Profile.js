@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
+import API_URL from "../config";
 
 const Profile = () => {
   const { id } = useParams();
@@ -24,7 +25,7 @@ const Profile = () => {
           throw new Error("User is not authenticated");
         }
 
-        const response = await fetch(`http://localhost:4000/api/users/${id}`, {
+        const response = await fetch(`${API_URL}/api/users/${id}`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -63,7 +64,7 @@ const Profile = () => {
         formData.append("profileImage", profileImage);
       }
 
-      const response = await fetch(`http://localhost:4000/api/users/me`, {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -96,7 +97,7 @@ const Profile = () => {
     
     try {
       // Check current user's friend requests and connections
-      const currentUserResponse = await fetch("http://localhost:4000/api/users/me", {
+      const currentUserResponse = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -120,7 +121,7 @@ const Profile = () => {
       
       // Check if friend request already sent (check if this user is in current user's sent requests)
       // We check by seeing if the profile user has current user in their friendRequests
-      const profileUserResponse = await fetch(`http://localhost:4000/api/users/${id}`, {
+      const profileUserResponse = await fetch(`${API_URL}/api/users/${id}`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -150,7 +151,7 @@ const Profile = () => {
     
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/friend-request/${id}`,
+        `${API_URL}/api/users/friend-request/${id}`,
         {
           method: "POST",
           headers: {
@@ -190,7 +191,7 @@ const Profile = () => {
     const fetchCurrentUser = async () => {
       if (!user?.token) return;
       try {
-        const response = await fetch("http://localhost:4000/api/users/me", {
+        const response = await fetch(`${API_URL}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
@@ -229,7 +230,7 @@ const Profile = () => {
                   className="rounded-full object-cover w-full h-full"
                   src={
                     userInfo?.profileImage
-                      ? `http://localhost:4000${userInfo.profileImage}`
+                      ? `${API_URL}${userInfo.profileImage}`
                       : ""
                   }
                   alt={`${userInfo?.name || 'User'}'s profile`}

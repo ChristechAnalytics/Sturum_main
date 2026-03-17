@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
+import API_URL from "../config";
 
 const SearchResults = () => {
   const [results, setResults] = useState([]);
@@ -17,7 +18,7 @@ const SearchResults = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/api/search?query=${encodeURIComponent(query)}`,
+          `${API_URL}/api/search?query=${encodeURIComponent(query)}`,
           {
             headers: {
               Authorization: `Bearer ${user.token}`,
@@ -59,7 +60,7 @@ const SearchResults = () => {
                     <div className="flex items-center">
                       {result.profileImage && (
                         <img
-                          src={`http://localhost:4000${result.profileImage}`}
+                          src={`${API_URL}${result.profileImage}`}
                           alt={result.title}
                           className="rounded-full mr-4 border-2 border-primary-200"
                           style={{ width: "50px", height: "50px" }}
@@ -80,7 +81,7 @@ const SearchResults = () => {
                       <div className="flex items-center mb-2">
                         {result.author?.profileImage && (
                           <img
-                            src={`http://localhost:4000${result.author.profileImage}`}
+                            src={`${API_URL}${result.author.profileImage}`}
                             alt={result.author.name}
                             className="rounded-full mr-2 border-2 border-neutral-200"
                             style={{ width: "30px", height: "30px" }}
@@ -102,7 +103,7 @@ const SearchResults = () => {
                     <p className="text-neutral-600 mb-2">{result.description}</p>
                     {result.fileUrl && (
                       <a
-                        href={`http://localhost:4000${result.fileUrl}`}
+                        href={`${API_URL}${result.fileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"

@@ -6,6 +6,7 @@ import { useNotification } from "../context/NotificationContext";
 import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_URL from "../config";
 
 const Notifications = () => {
   const { user } = useAuthContext();
@@ -24,7 +25,7 @@ const Notifications = () => {
     if (!user?.token) return;
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -41,7 +42,7 @@ const Notifications = () => {
         const requestsPromises = userData.friendRequests.map(
           async (requestId) => {
             const reqResponse = await fetch(
-              `http://localhost:4000/api/users/${requestId}`,
+              `${API_URL}/api/users/${requestId}`,
               {
                 headers: {
                   Authorization: `Bearer ${user.token}`,
@@ -76,7 +77,7 @@ const Notifications = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/accept-friend-request/${requesterId}`,
+        `${API_URL}/api/users/accept-friend-request/${requesterId}`,
         {
           method: "POST",
           headers: {
@@ -107,7 +108,7 @@ const Notifications = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/decline-friend-request/${requesterId}`,
+        `${API_URL}/api/users/decline-friend-request/${requesterId}`,
         {
           method: "POST",
           headers: {
@@ -172,7 +173,7 @@ const Notifications = () => {
                       className="rounded-full object-cover mr-4"
                       src={
                         request.profileImage
-                          ? `http://localhost:4000${request.profileImage}`
+                          ? `${API_URL}${request.profileImage}`
                           : ""
                       }
                       alt={request.name}

@@ -9,6 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "../styles/Modal.css";
 import "react-toastify/dist/ReactToastify.css";
 import PostModal from "../DEPT-components/PostModal";
+import API_URL from "../config";
 
 Modal.setAppElement("#root");
 
@@ -27,7 +28,7 @@ const Home = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/posts", {
+      const response = await fetch(`${API_URL}/api/posts`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -53,7 +54,7 @@ const Home = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -78,7 +79,7 @@ const Home = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/posts", {
+      const response = await fetch(`${API_URL}/api/posts`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -123,7 +124,7 @@ const Home = () => {
   }, [modalIsOpen]);
 
   const profileImage = userInfo?.profileImage
-    ? `http://localhost:4000${userInfo.profileImage}`
+    ? `${API_URL}${userInfo.profileImage}`
     : "";
 
   return (

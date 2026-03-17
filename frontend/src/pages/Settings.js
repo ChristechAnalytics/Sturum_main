@@ -5,6 +5,7 @@ import { useAuthContext } from "../hooks/useAuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaBell, FaComments, FaHeart, FaNewspaper } from "react-icons/fa";
+import API_URL from "../config";
 
 const Settings = () => {
   const { user } = useAuthContext();
@@ -27,7 +28,7 @@ const Settings = () => {
     if (!user?.token) return;
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/me", {
+      const response = await fetch(`${API_URL}/api/users/me`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -64,7 +65,7 @@ const Settings = () => {
 
     setSaving(true);
     try {
-      const response = await fetch("http://localhost:4000/api/users/me/notifications", {
+      const response = await fetch(`${API_URL}/api/users/me/notifications`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

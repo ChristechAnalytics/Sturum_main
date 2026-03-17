@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
+import API_URL from "../config";
 
 const PostCard = ({ text, image, createdAt, _id, author }) => {
   const { user } = useAuthContext();
@@ -28,7 +29,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/posts/${_id}/comments`,
+        `${API_URL}/api/posts/${_id}/comments`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -70,7 +71,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/posts/${_id}/like`,
+        `${API_URL}/api/posts/${_id}/like`,
         {
           method: "POST",
           headers: {
@@ -109,7 +110,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/posts/${_id}/comments`,
+        `${API_URL}/api/posts/${_id}/comments`,
         {
           method: "POST",
           headers: {
@@ -143,7 +144,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
                 className="rounded-full mr-3 object-cover bg-neutral-100 border-2 border-neutral-300"
                 src={
                   author.profileImage
-                    ? `http://localhost:4000${author.profileImage}`
+                    ? `${API_URL}${author.profileImage}`
                     : ""
                 }
                 alt={`${author.name}'s profile`}
@@ -181,7 +182,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
           <div className="px-4 sm:px-6 mb-3">
             <img
               className="mx-0 w-full rounded-lg object-cover max-h-[500px]"
-              src={`http://localhost:4000${image}`}
+              src={`${API_URL}${image}`}
               alt="Post content"
             />
           </div>
@@ -259,7 +260,7 @@ const PostCard = ({ text, image, createdAt, _id, author }) => {
                 className="rounded-full mr-2 object-cover border-2 border-neutral-200"
                 src={
                   comment.user.profileImage
-                    ? `http://localhost:4000${comment.user.profileImage}`
+                    ? `${API_URL}${comment.user.profileImage}`
                     : ""
                 }
                 alt={`${comment.user.name}'s profile`}
