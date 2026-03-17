@@ -69,7 +69,7 @@ const NavbarMP = ({ onSearch }) => {
                     alt="Sturum Logo" 
                     className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" 
                   />
-                  <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-neutral-800 hidden sm:block">
+                  <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-neutral-800 sm:block">
                     STURUM
                   </h1>
                 </Link>

@@ -22,18 +22,55 @@ if (!fs.existsSync(uploadsDir)) {
 // Express app
 const app = express();
 const server = http.createServer(app);
+
+// Normalize URL helper - removes trailing slashes for consistent comparison
+const normalizeUrl = (url) => {
+  if (!url) return url;
+  return url.replace(/\/+$/, ''); // Remove trailing slashes
+};
+
+const frontendUrl = normalizeUrl(process.env.FRONTEND_URL) || "http://localhost:3000";
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: frontendUrl,
     methods: ["GET", "POST"],
   },
 });
 
 // Middleware
 app.use(express.json());
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "https://localhost:3000"
+]
+  .filter(Boolean) // Remove undefined values
+  .map(normalizeUrl); // Normalize all URLs
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Normalize the incoming origin (remove trailing slash)
+    const normalizedOrigin = normalizeUrl(origin);
+    
+    // Allow if origin is in allowed list or if no FRONTEND_URL is set (development)
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(normalizedOrigin)) {
+      // Return the normalized origin (without trailing slash) to match browser's origin
+      callback(null, normalizedOrigin);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      console.log('Normalized origin:', normalizedOrigin);
+      console.log('Allowed origins:', allowedOrigins);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use((req, res, next) => {
   console.log(req.method, req.path);
