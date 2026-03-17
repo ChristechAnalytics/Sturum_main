@@ -45,6 +45,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root route - health check
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Sturum API is running", 
+    status: "ok",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
