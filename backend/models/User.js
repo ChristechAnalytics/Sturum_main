@@ -1,0 +1,135 @@
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
+
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema(
+  {
+    department: {
+      type: String,
+      required: true,
+      enum: [
+        "Meteorology and Climate Change",
+        "Marine Geology",
+        "Marine Environmental and Pollution",
+        "Marine Transport and Logistics",
+        "Fisheries and Aquaculture",
+        "Marine Economics and Finance",
+        "Port Management",
+      ],
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    contact: { type: Number, required: true },
+    academicLevel: { type: Number, required: true },
+    profileImage: { type: String },
+    friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    connections: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    notificationPreferences: {
+      friendRequests: { type: Boolean, default: true },
+      messages: { type: Boolean, default: true },
+      comments: { type: Boolean, default: true },
+      likes: { type: Boolean, default: true },
+      newPosts: { type: Boolean, default: true },
+    },
+  },
+  { timestamps: true }
+);
+
+// static signup method
+userSchema.statics.signup = async function (department, name, email, password, contact, academicLevel) {
+  // Validate all required fields
+  if (!email || !password || !name || !department) {
+    throw Error("All fields must be filled");
+  }
+  
+  // Validate contact and academicLevel specifically
+  if (!contact || contact === "" || contact === null || contact === undefined) {
+    throw Error("Contact number is required");
+  }
+  if (!academicLevel || academicLevel === "" || academicLevel === null || academicLevel === undefined) {
+    throw Error("Academic level is required");
+  }
+  
+  if (!validator.isEmail(email)) {
+    throw Error("Email is not valid");
+  }
+  if (!validator.isStrongPassword(password)) {
+    throw Error("Password not strong enough");
+  }
+
+  const exists = await this.findOne({ email });
+
+  if (exists) {
+    throw Error("Email already in use");
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hash = await bcrypt.hash(password, salt);
+
+  // Convert to numbers, ensuring they're valid
+  const contactNumber = Number(contact);
+  
+  // Handle "graduate" string by converting to 600
+  let academicLevelNumber;
+  if (academicLevel === "graduate" || academicLevel === "Graduate") {
+    academicLevelNumber = 600;
+  } else {
+    academicLevelNumber = Number(academicLevel);
+  }
+  
+  if (isNaN(contactNumber) || contactNumber <= 0) {
+    throw Error("Contact number must be a valid positive number");
+  }
+  if (isNaN(academicLevelNumber) || academicLevelNumber <= 0) {
+    throw Error("Academic level must be a valid number");
+  }
+
+  const user = await this.create({ 
+    department, 
+    name, 
+    email, 
+    password: hash,
+    contact: contactNumber,
+    academicLevel: academicLevelNumber
+  });
+
+  return user;
+};
+
+// static login method
+userSchema.statics.login = async function (email, password) {
+  if (!email || !password) {
+    throw Error("All fields must be filled");
+  }
+
+  const user = await this.findOne({ email });
+
+  if (!user) {
+    throw Error("Incorrect email");
+  }
+
+  const match = await bcrypt.compare(password, user.password);
+
+  if (!match) {
+    throw Error("Incorrect password");
+  }
+
+  return user;
+};
+
+const User = mongoose.model("User", userSchema);
+module.exports = User;
