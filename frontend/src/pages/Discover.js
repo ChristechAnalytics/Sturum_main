@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import Header from "../DEPT-components/Header";
@@ -15,43 +15,7 @@ const Discover = () => {
   const [sentRequests, setSentRequests] = useState(new Set());
   const [friends, setFriends] = useState(new Set());
 
-  useEffect(() => {
-    if (user?.token) {
-      fetchDiscoverableUsers();
-    }
-  }, [user]);
-
-  const fetchDiscoverableUsers = async () => {
-    if (!user?.token) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:4000/api/users/discover", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
-        throw new Error(errorData.message || `Failed to fetch users: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const fetchedUsers = data.users || [];
-      setUsers(fetchedUsers);
-      
-      // After fetching users, check their status
-      await fetchCurrentUserStatus(fetchedUsers);
-    } catch (error) {
-      console.error("Error fetching discoverable users:", error);
-      toast.error(error.message || "Failed to load users");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCurrentUserStatus = async (usersList) => {
+  const fetchCurrentUserStatus = useCallback(async (usersList) => {
     if (!user?.token || !usersList || usersList.length === 0) return;
 
     try {
@@ -116,7 +80,43 @@ const Discover = () => {
     } catch (error) {
       console.error("Error fetching current user status:", error);
     }
-  };
+  }, [user?.token]);
+
+  const fetchDiscoverableUsers = useCallback(async () => {
+    if (!user?.token) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:4000/api/users/discover", {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+        throw new Error(errorData.message || `Failed to fetch users: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const fetchedUsers = data.users || [];
+      setUsers(fetchedUsers);
+      
+      // After fetching users, check their status
+      await fetchCurrentUserStatus(fetchedUsers);
+    } catch (error) {
+      console.error("Error fetching discoverable users:", error);
+      toast.error(error.message || "Failed to load users");
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.token, fetchCurrentUserStatus]);
+
+  useEffect(() => {
+    if (user?.token) {
+      fetchDiscoverableUsers();
+    }
+  }, [user, fetchDiscoverableUsers]);
 
   const handleSendFriendRequest = async (userId) => {
     if (!user?.token || sendingRequests.has(userId)) return;

@@ -4,7 +4,7 @@ import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaBell, FaComments, FaHeart, FaThumbsUp, FaNewspaper } from "react-icons/fa";
+import { FaBell, FaComments, FaHeart, FaNewspaper } from "react-icons/fa";
 
 const Settings = () => {
   const { user } = useAuthContext();
