@@ -1,11 +1,11 @@
 const nodemailer = require("nodemailer");
 
 const appName = () => process.env.APP_NAME || "Sturum";
-const EMAIL_SEND_TIMEOUT_MS = 12_000;
+const EMAIL_SEND_TIMEOUT_MS = 15_000;
 
 const getSmtpUser = () => process.env.SMTP_USER?.trim();
-/** Gmail app passwords are often copied with spaces — strip them. */
 const getSmtpPass = () => (process.env.SMTP_PASS || "").replace(/\s/g, "");
+const getResendApiKey = () => process.env.RESEND_API_KEY?.trim();
 
 const isGmailSmtp = () => {
   if (process.env.SMTP_SERVICE === "gmail") return true;
@@ -13,32 +13,39 @@ const isGmailSmtp = () => {
   return host === "smtp.gmail.com" || host.endsWith(".gmail.com");
 };
 
-const isEmailConfigured = () => {
+const isSmtpConfigured = () => {
   const hasAuth = Boolean(getSmtpUser() && getSmtpPass());
   if (!hasAuth) return false;
   if (isGmailSmtp()) return true;
   return Boolean(process.env.SMTP_HOST);
 };
 
-const getTransporter = () => {
-  const auth = {
-    user: getSmtpUser(),
-    pass: getSmtpPass(),
-  };
+const isResendConfigured = () => Boolean(getResendApiKey());
 
+/** Resend HTTP API is recommended for Render/Vercel; Gmail SMTP is fine for local dev. */
+const isEmailConfigured = () => isResendConfigured() || isSmtpConfigured();
+
+const getEmailProvider = () => {
+  if (isResendConfigured()) return "resend";
+  if (isSmtpConfigured()) return "smtp";
+  return "none";
+};
+
+const getTransporter = () => {
+  const auth = { user: getSmtpUser(), pass: getSmtpPass() };
   const timeouts = {
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 15_000,
   };
 
-  // Explicit host/port works more reliably on cloud hosts (Render) than service: "gmail"
   if (isGmailSmtp()) {
     return nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
       requireTLS: true,
+      family: 4, // Render cannot reach Gmail over IPv6 (ENETUNREACH)
       auth,
       ...timeouts,
     });
@@ -57,8 +64,12 @@ const getTransporter = () => {
   });
 };
 
-const getFromAddress = () =>
-  process.env.SMTP_FROM || `${appName()} <${getSmtpUser()}>`;
+const getFromAddress = () => {
+  if (isResendConfigured()) {
+    return process.env.RESEND_FROM || `${appName()} <onboarding@resend.dev>`;
+  }
+  return process.env.SMTP_FROM || `${appName()} <${getSmtpUser()}>`;
+};
 
 const buildSignupEmailHtml = ({ name, verifyUrl }) => `
 <!DOCTYPE html>
@@ -77,39 +88,84 @@ const buildSignupEmailHtml = ({ name, verifyUrl }) => `
 </html>
 `;
 
-const sendSignupEmail = async ({ to, name, verifyUrl }) => {
+const buildEmailContent = ({ name, verifyUrl }) => {
   const subject = `Welcome to ${appName()} — verify your email`;
+  const text = [
+    `Welcome to ${appName()}, ${name}!`,
+    "",
+    "Your account has been created. Verify your email by opening this link (expires in 24 hours):",
+    verifyUrl,
+    "",
+    "If you did not create this account, ignore this email.",
+  ].join("\n");
+  const html = buildSignupEmailHtml({ name, verifyUrl });
+  return { subject, text, html };
+};
 
+const sendViaResend = async ({ to, name, verifyUrl }) => {
+  const { subject, text, html } = buildEmailContent({ name, verifyUrl });
+  const from = getFromAddress();
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getResendApiKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ from, to: [to], subject, html, text }),
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const msg = body.message || body.error || response.statusText;
+    throw new Error(msg);
+  }
+
+  console.log(`[email] Resend: sent to ${to} (id: ${body.id})`);
+  return { sent: true, messageId: body.id, provider: "resend" };
+};
+
+const sendViaSmtp = async ({ to, name, verifyUrl }) => {
+  const { subject, text, html } = buildEmailContent({ name, verifyUrl });
+  const transporter = getTransporter();
+  const info = await transporter.sendMail({
+    from: getFromAddress(),
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  console.log(`[email] SMTP: sent to ${to} (id: ${info.messageId})`);
+  return { sent: true, messageId: info.messageId, provider: "smtp" };
+};
+
+const isProduction = () => process.env.NODE_ENV === "production";
+
+const sendSignupEmail = async ({ to, name, verifyUrl }) => {
   if (!isEmailConfigured()) {
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`[email] SMTP not configured. Verification link for ${to}:`);
+    if (!isProduction()) {
+      console.log(`[email] Not configured. Verification link for ${to}:`);
       console.log(verifyUrl);
-      console.log("[email] Local dev: run frontend (npm start) and backend (npm run dev) before opening the link.");
     }
-    return { sent: false, reason: "smtp_not_configured" };
+    return { sent: false, reason: "not_configured" };
+  }
+
+  if (isProduction() && !isResendConfigured()) {
+    console.error(
+      "[email] Production (Render) requires RESEND_API_KEY. Gmail SMTP is blocked (ENETUNREACH / timeout)."
+    );
+    return { sent: false, reason: "resend_required" };
   }
 
   try {
-    const transporter = getTransporter();
-    const info = await transporter.sendMail({
-      from: getFromAddress(),
-      to,
-      subject,
-      text: [
-        `Welcome to ${appName()}, ${name}!`,
-        "",
-        "Your account has been created. Verify your email by opening this link (expires in 24 hours):",
-        verifyUrl,
-        "",
-        "If you did not create this account, ignore this email.",
-      ].join("\n"),
-      html: buildSignupEmailHtml({ name, verifyUrl }),
-    });
-
-    console.log(`[email] Sent verification to ${to} (id: ${info.messageId})`);
-    return { sent: true, messageId: info.messageId };
+    if (isResendConfigured()) {
+      return await sendViaResend({ to, name, verifyUrl });
+    }
+    return await sendViaSmtp({ to, name, verifyUrl });
   } catch (error) {
-    console.error(`[email] Failed to send to ${to}:`, error.message);
+    console.error(`[email] Send failed (${getEmailProvider()}):`, error.message);
     return { sent: false, reason: "send_failed", error: error.message };
   }
 };
@@ -126,26 +182,43 @@ const sendSignupEmailWithTimeout = async (params) =>
   ]);
 
 const verifySmtpConnection = async () => {
-  if (!isEmailConfigured()) {
-    console.log("[email] SMTP not configured — verification emails will not send");
+  const provider = getEmailProvider();
+  console.log(`[email] Provider: ${provider}`);
+
+  if (provider === "none") {
+    console.log(
+      "[email] Not configured. Set RESEND_API_KEY on Render (recommended) or SMTP_* for local Gmail."
+    );
+    return false;
+  }
+
+  if (provider === "resend") {
+    console.log(`[email] Resend ready (from: ${getFromAddress()})`);
+    return true;
+  }
+
+  if (isProduction()) {
+    console.error(
+      "[email] CRITICAL: Set RESEND_API_KEY on Render. Gmail SMTP does not work on this host."
+    );
     return false;
   }
 
   try {
     await getTransporter().verify();
-    console.log("[email] SMTP connection OK");
+    console.log("[email] SMTP connection OK (local dev)");
     return true;
   } catch (error) {
     console.error("[email] SMTP connection failed:", error.message);
-    console.error(
-      "[email] On Render: set SMTP_USER, SMTP_PASS (Gmail App Password, no spaces), SMTP_FROM. Check spam folder."
-    );
     return false;
   }
 };
 
 module.exports = {
   isEmailConfigured,
+  isResendConfigured,
+  isSmtpConfigured,
+  getEmailProvider,
   sendSignupEmail,
   sendSignupEmailWithTimeout,
   verifySmtpConnection,

@@ -17,5 +17,13 @@ services:
         sync: false
       - key: API_PUBLIC_URL
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
       - key: PORT
         value: 10000

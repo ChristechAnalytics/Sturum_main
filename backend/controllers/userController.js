@@ -54,7 +54,9 @@ const signupUser = async (req, res) => {
 
       if (!emailSent) {
         emailWarning =
-          "We could not send the verification email. Open Settings → resend, or check that SMTP is set on the server.";
+          emailResult.reason === "resend_required"
+            ? "Add RESEND_API_KEY on Render to send verification emails from production."
+            : "We could not send the verification email. Use Settings → resend after email is configured.";
         console.error("[signup] Email not sent:", emailResult.reason, emailResult.error);
       }
     } catch (emailErr) {
@@ -155,10 +157,13 @@ const resendVerificationEmail = async (req, res) => {
     const emailResult = await trySendVerificationEmail(user, verifyUrl);
 
     if (!emailResult.sent) {
-      return res.status(503).json({
-        error:
-          "Could not send email. Check SMTP settings on the server (Gmail App Password) and try again.",
-      });
+      const hint =
+        emailResult.reason === "resend_required"
+          ? "Email cannot send from this server without RESEND_API_KEY. Add it in Render environment variables."
+          : isEmailConfigured()
+            ? "Could not send email. Add RESEND_API_KEY on Render — Gmail SMTP is blocked there."
+            : "Email is not configured. Add RESEND_API_KEY on Render.";
+      return res.status(503).json({ error: hint });
     }
 
     res.status(200).json({

@@ -13,6 +13,9 @@ const protect = async (req, res, next) => {
   try {
     const { _id } = jwt.verify(token, process.env.SECRET);
     req.user = await User.findById(_id).select("_id department");
+    if (!req.user) {
+      return res.status(401).json({ error: "User no longer exists. Please log in again." });
+    }
     next();
   } catch (error) {
     res.status(401).json({ error: "Request is not authorized" });

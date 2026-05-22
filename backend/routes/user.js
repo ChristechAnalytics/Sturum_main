@@ -30,6 +30,9 @@ router.post("/resend-verification", protect, resendVerificationEmail);
 // Get current user's profile
 router.get("/me", protect, async (req, res) => {
   try {
+    if (!req.user?._id) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
     const user = await User.findById(req.user._id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
