@@ -6,11 +6,8 @@ const {
   hashVerificationToken,
   getVerificationExpiry,
 } = require("../utils/verification");
-
-const normalizeUrl = (url) => (url ? url.replace(/\/+$/, "") : url);
-
-const getFrontendUrl = () =>
-  normalizeUrl(process.env.FRONTEND_URL) || "http://localhost:3000";
+const { buildEmailVerificationUrl, buildFrontendVerifyResultUrl } = require("../utils/urls");
+const { verifyEmailToken } = require("../utils/verifyEmailToken");
 
 const attachVerificationAndSendEmail = async (user) => {
   const rawToken = createVerificationToken();
@@ -18,7 +15,7 @@ const attachVerificationAndSendEmail = async (user) => {
   user.emailVerificationExpires = getVerificationExpiry();
   await user.save();
 
-  const verifyUrl = `${getFrontendUrl()}/verify-email?token=${rawToken}`;
+  const verifyUrl = buildEmailVerificationUrl(rawToken);
   return sendSignupEmail({
     to: user.email,
     name: user.name,
@@ -74,35 +71,43 @@ const loginUser = async (req, res) => {
 const verifyEmail = async (req, res) => {
   const token = req.query.token?.trim();
 
-  if (!token) {
-    return res.status(400).json({ error: "Verification token is required" });
-  }
-
   try {
-    const hashed = hashVerificationToken(token);
-    const user = await User.findOne({
-      emailVerificationToken: hashed,
-      emailVerificationExpires: { $gt: new Date() },
-    }).select("+emailVerificationToken +emailVerificationExpires");
-
-    if (!user) {
-      return res.status(400).json({
-        error: "Invalid or expired verification link. Sign up again or request a new email.",
-      });
-    }
-
-    user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save();
-
+    const user = await verifyEmailToken(token);
     res.status(200).json({
       message: "Email verified successfully. You can log in and use Sturum.",
       email: user.email,
     });
   } catch (error) {
+    if (
+      error.message.includes("required") ||
+      error.message.includes("Invalid or expired")
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
     console.error("verifyEmail:", error);
     res.status(500).json({ error: "Could not verify email. Please try again." });
+  }
+};
+
+/** Browser link from email: verify on API, then redirect to the React app */
+const verifyEmailRedirect = async (req, res) => {
+  const token = req.query.token?.trim();
+
+  try {
+    await verifyEmailToken(token);
+    return res.redirect(
+      302,
+      buildFrontendVerifyResultUrl(
+        "success",
+        "Email verified successfully. You can log in and use Sturum."
+      )
+    );
+  } catch (error) {
+    console.error("verifyEmailRedirect:", error.message);
+    return res.redirect(
+      302,
+      buildFrontendVerifyResultUrl("error", error.message)
+    );
   }
 };
 
@@ -136,9 +141,22 @@ const resendVerificationEmail = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    await User.changePassword(req.user._id, currentPassword, newPassword);
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
   verifyEmail,
+  verifyEmailRedirect,
   resendVerificationEmail,
+  changePassword,
 };

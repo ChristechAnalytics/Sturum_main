@@ -3,7 +3,9 @@ const {
   signupUser,
   loginUser,
   verifyEmail,
+  verifyEmailRedirect,
   resendVerificationEmail,
+  changePassword,
 } = require("../controllers/userController");
 const { protect } = require("../middleware/requireAuth");
 const { upload, handleUploadError } = require("../utils/upload");
@@ -17,7 +19,8 @@ router.post("/signup", signupUser);
 // Login route
 router.post("/login", loginUser);
 
-// Email verification (public)
+// Email verification (public) — link in emails should use /verify-email/redirect
+router.get("/verify-email/redirect", verifyEmailRedirect);
 router.get("/verify-email", verifyEmail);
 
 // Resend verification email
@@ -36,6 +39,9 @@ router.get("/me", protect, async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+// Change password - MUST be before /:id route
+router.put("/me/password", protect, changePassword);
 
 // Update notification preferences - MUST be before /:id route
 router.put("/me/notifications", protect, async (req, res) => {

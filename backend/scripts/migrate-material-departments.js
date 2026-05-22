@@ -8,7 +8,8 @@ const Material = require("../models/Material");
 const User = require("../models/User");
 
 async function migrate() {
-  await mongoose.connect(process.env.MONGO_URI_COMPASS);
+  const { connectDatabase } = require("../config/database");
+  await connectDatabase();
   const materials = await Material.find({
     $or: [{ department: { $exists: false } }, { department: null }, { department: "" }],
   });

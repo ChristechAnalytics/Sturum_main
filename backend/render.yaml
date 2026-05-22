@@ -7,11 +7,15 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGO_URI_COMPASS
+      - key: MONGO_URI
         sync: false
+      - key: MONGO_DB_NAME
+        value: sturum
       - key: SECRET
         sync: false
       - key: FRONTEND_URL
+        sync: false
+      - key: API_PUBLIC_URL
         sync: false
       - key: PORT
         value: 10000

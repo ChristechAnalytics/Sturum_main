@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
@@ -17,6 +16,8 @@ const refreshTokenRoutes = require("./routes/refreshToken");
 const departmentRoutes = require("./routes/departments");
 const { socketAuth } = require("./middleware/socketAuth");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
+const { connectDatabase } = require("./config/database");
+const { warnIfMisconfiguredForProduction } = require("./utils/urls");
 
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -94,6 +95,7 @@ app.get("/", (req, res) => {
 app.use("/api", apiLimiter);
 app.use("/api/users/signup", authLimiter);
 app.use("/api/users/login", authLimiter);
+app.use("/api/users/me/password", authLimiter);
 app.use("/api/auth/refresh", authLimiter);
 
 app.use("/api/users", userRoutes);
@@ -119,9 +121,9 @@ io.on("connection", (socket) => {
   });
 });
 
-mongoose
-  .connect(process.env.MONGO_URI_ATLAS)
+connectDatabase()
   .then(() => {
+    warnIfMisconfiguredForProduction();
     const PORT = process.env.PORT || 4000;
     server.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);

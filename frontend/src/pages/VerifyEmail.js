@@ -6,10 +6,27 @@ import API_URL from "../config";
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const statusParam = searchParams.get("status");
+  const messageParam = searchParams.get("message");
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    if (statusParam === "success") {
+      setStatus("success");
+      setMessage(
+        messageParam ||
+          "Email verified successfully. You can log in and use Sturum."
+      );
+      return;
+    }
+
+    if (statusParam === "error") {
+      setStatus("error");
+      setMessage(messageParam || "Verification failed.");
+      return;
+    }
+
     if (!token) {
       setStatus("error");
       setMessage("Missing verification link. Open the link from your email.");
@@ -38,7 +55,7 @@ const VerifyEmail = () => {
     };
 
     verify();
-  }, [token]);
+  }, [token, statusParam, messageParam]);
 
   return (
     <div>
@@ -67,12 +84,20 @@ const VerifyEmail = () => {
             <>
               <h1 className="text-2xl font-bold text-red-700 mb-3">Verification failed</h1>
               <p className="text-neutral-600 mb-6">{message}</p>
-              <Link
-                to="/signup"
-                className="inline-block text-primary-600 font-semibold hover:underline"
-              >
-                Back to sign up
-              </Link>
+              <div className="flex flex-col gap-3 items-center">
+                <Link
+                  to="/login"
+                  className="text-primary-600 font-semibold hover:underline"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/settings"
+                  className="text-sm text-neutral-600 hover:underline"
+                >
+                  Resend verification from Settings
+                </Link>
+              </div>
             </>
           )}
         </div>
