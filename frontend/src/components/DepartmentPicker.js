@@ -10,6 +10,7 @@ const DepartmentPicker = ({ value, onChange, required = true, id = "department" 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
+  const listboxId = `${id}-listbox`;
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -31,9 +32,7 @@ const DepartmentPicker = ({ value, onChange, required = true, id = "department" 
   }, []);
 
   useEffect(() => {
-    if (value && !query) {
-      setQuery(value);
-    }
+    setQuery(value || "");
   }, [value]);
 
   useEffect(() => {
@@ -97,6 +96,7 @@ const DepartmentPicker = ({ value, onChange, required = true, id = "department" 
           required={required && !value}
           className="w-full pl-10 pr-10 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
           aria-expanded={isOpen}
+          aria-controls={listboxId}
           aria-autocomplete="list"
           role="combobox"
         />
@@ -119,6 +119,7 @@ const DepartmentPicker = ({ value, onChange, required = true, id = "department" 
 
       {isOpen && !loading && (
         <ul
+          id={listboxId}
           className="absolute z-50 w-full mt-1 max-h-64 overflow-y-auto bg-white border-2 border-neutral-200 rounded-lg shadow-lg"
           role="listbox"
         >
