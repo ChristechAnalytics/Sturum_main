@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import Navbar from "../LP-components/Navbar";
 import { Link } from "react-router-dom";
 import { useSignup } from "../hooks/useSignup";
+import DepartmentPicker from "../components/DepartmentPicker";
 
 const Signup = () => {
-  const [department, setDepartment] = useState(
-    "Meteorology and Climate Change"
-  );
+  const [department, setDepartment] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +16,10 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate that contact and academicLevel are filled
+    if (!department) {
+      alert("Please search and select your department");
+      return;
+    }
     if (!contact || contact.trim() === "") {
       alert("Please enter your contact number");
       return;
@@ -36,11 +38,9 @@ const Signup = () => {
       <div className="pt-[4.5rem]">
         {successMessage ? (
           <div className="mx-auto w-fit px-8 py-3 text-primary-700 border-2 border-primary-300 bg-primary-50 mt-5 rounded-lg shadow-md">
-            {"You have successfully signed up"}
+            You have successfully signed up
           </div>
-        ) : (
-          ""
-        )}
+        ) : null}
 
         <div className="flex justify-center items-center min-h-[calc(100vh-80px)] px-4 py-8">
           <form
@@ -51,36 +51,12 @@ const Signup = () => {
               Create Your Account
             </h1>
 
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">
-              Department:
-            </label>
-            <select
-              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
-              autoComplete="off"
-              id="department"
-              name="department"
+            <DepartmentPicker
               value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              onChange={setDepartment}
               required
-            >
-              <option value="Meteorology and Climate Change">
-                Meteorology and Climate Change
-              </option>
-              <option value="Marine Geology">Marine Geology</option>
-              <option value="Marine Environmental and Pollution">
-                Marine Environmental and Pollution
-              </option>
-              <option value="Marine Transport and Logistics">
-                Marine Transport and Logistics
-              </option>
-              <option value="Fisheries and Aquaculture">
-                Fisheries and Aquaculture
-              </option>
-              <option value="Marine Economics and Finance">
-                Marine Economics and Finance
-              </option>
-              <option value="Port Management">Port Management</option>
-            </select>
+            />
+
             <div className="mb-4">
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name:

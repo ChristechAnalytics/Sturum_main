@@ -5,7 +5,12 @@ const Schema = mongoose.Schema;
 const PostSchema = new mongoose.Schema({
   text: {
     type: String,
-    required: true,
+    default: "",
+  },
+  reshareOf: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post",
+    default: null,
   },
   authorId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +44,16 @@ const PostSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      parentComment: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null,
+      },
+      likes: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      ],
       createdAt: {
         type: Date,
         default: Date.now,

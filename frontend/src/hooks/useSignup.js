@@ -54,7 +54,7 @@ export const useSignup = () => {
       console.log("User was successfully created");
       setSuccessMessage(true);
 
-      navigate("/login");
+      navigate("/home");
     } catch (error) {
       setIsLoading(false);
       console.error("Signup error:", error);

@@ -2,13 +2,9 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { createAccessToken } = require("../utils/tokens");
 
-// Generate a new token
-const generateToken = (user) => {
-  return jwt.sign({ _id: user._id }, process.env.SECRET, { expiresIn: "1h" }); // 1 hour expiration
-};
-
-router.post("/refresh-token", async (req, res) => {
+router.post("/", async (req, res) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
@@ -16,16 +12,27 @@ router.post("/refresh-token", async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.SECRET);
+    const secret = process.env.REFRESH_SECRET || process.env.SECRET;
+    const decoded = jwt.verify(refreshToken, secret);
 
-    // Find the user by the ID in the refresh token
+    if (decoded.type !== "refresh") {
+      return res.status(403).json({ error: "Invalid refresh token" });
+    }
+
     const user = await User.findById(decoded._id);
     if (!user) {
       return res.status(401).json({ error: "User not found" });
     }
 
-    const newToken = generateToken(user);
-    res.json({ token: newToken });
+    res.json({
+      token: createAccessToken(user._id),
+      refreshToken,
+      _id: user._id,
+      userId: user._id,
+      email: user.email,
+      name: user.name,
+      department: user.department,
+    });
   } catch (error) {
     res.status(403).json({ error: "Invalid refresh token" });
   }

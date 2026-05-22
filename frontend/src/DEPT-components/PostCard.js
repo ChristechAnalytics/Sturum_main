@@ -1,279 +1,349 @@
 import React, { useState, useEffect } from "react";
-import { IoMdGlobe, IoIosSend } from "react-icons/io";
-import { AiFillLike } from "react-icons/ai";
-import { FcLike } from "react-icons/fc";
-import { FaHeart, FaCommentDots } from "react-icons/fa";
+import { IoMdGlobe, IoMdRepeat } from "react-icons/io";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import API_URL from "../config";
+import { getFileUrl } from "../utils/api";
+import { getReshareTarget } from "../utils/posts";
+import UserAvatar from "../components/UserAvatar";
+import PostComments from "./PostComments";
+import EmbeddedPost from "./EmbeddedPost";
+import ReshareModal from "./ReshareModal";
 
-const PostCard = ({ text, image, createdAt, _id, author }) => {
+const PostCard = ({
+  text,
+  image,
+  createdAt,
+  _id,
+  author,
+  authorId,
+  reshareOf,
+  currentUser,
+  onDeleted,
+  onUpdated,
+  onReshared,
+}) => {
   const { user } = useAuthContext();
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
-  const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [showCommentForm, setShowCommentForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(text);
+  const [postText, setPostText] = useState(text);
+  const [reshareModalOpen, setReshareModalOpen] = useState(false);
+  const [hasReshared, setHasReshared] = useState(false);
 
-  // Format the date
+  const currentUserId = user?._id || user?.userId;
+  const postAuthorId = authorId || author?._id;
+  const isAuthor =
+    postAuthorId &&
+    currentUserId &&
+    postAuthorId.toString() === currentUserId.toString();
+
+  const isReshare = Boolean(reshareOf);
+  const originalForReshare = isReshare
+    ? getReshareTarget(reshareOf)
+    : { _id, text, imageUrl: image, authorId: author, createdAt };
+  const reshareTargetId = originalForReshare._id?.toString() || _id;
+
+  const viewer =
+    currentUser ||
+    (user
+      ? {
+          _id: currentUserId,
+          name: user.name,
+          profileImage: user.profileImage,
+        }
+      : null);
+
   const formattedDate = format(new Date(createdAt), "MMMM d, h:mm a");
+  const imageSrc = !isReshare && image ? getFileUrl(image, user?.token) : "";
 
-  // Fetch post comments
   const fetchComments = async () => {
-    if (!user) {
-      toast.error("User not authenticated");
-      return;
-    }
+    if (!user) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/posts/${_id}/comments`,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch comments: ${response.statusText}`);
-      }
+      const response = await fetch(`${API_URL}/api/posts/${_id}/comments`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) throw new Error(`Failed to fetch comments`);
       const data = await response.json();
       setLikes(data.likes);
-      setComments(data.comments);
-      
-      // Check if current user has liked the post
-      if (user && data.likedUsers) {
-        const userId = user._id || user.userId;
+      setComments(data.comments || []);
+
+      if (data.likedUsers) {
         const userHasLiked = data.likedUsers.some(
-          (id) => id.toString() === userId?.toString()
+          (id) => id.toString() === currentUserId?.toString()
         );
         setHasLiked(userHasLiked);
-      } else if (user) {
-        // If likedUsers not provided, default to false
-        setHasLiked(false);
       }
     } catch (error) {
       toast.error(`Error fetching comments: ${error.message}`);
     }
   };
+
   useEffect(() => {
     fetchComments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_id]);
 
+  useEffect(() => {
+    setPostText(text);
+    setEditText(text);
+  }, [text]);
+
+  useEffect(() => {
+    if (!user?.token || !reshareTargetId) return;
+
+    const checkReshared = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/api/posts/${reshareTargetId}/reshare-status`,
+          { headers: { Authorization: `Bearer ${user.token}` } }
+        );
+        if (!response.ok) return;
+        const data = await response.json();
+        setHasReshared(Boolean(data.hasReshared));
+      } catch {
+        // ignore
+      }
+    };
+
+    checkReshared();
+  }, [user?.token, reshareTargetId, currentUserId]);
+
   const handleLike = async () => {
-    if (!user) {
-      console.error("User not authenticated");
-      return;
-    }
+    if (!user) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/posts/${_id}/like`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to like the post: ${response.statusText}`);
-      }
-
+      const response = await fetch(`${API_URL}/api/posts/${_id}/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to like post");
       const { likes: updatedLikes } = await response.json();
       setLikes(updatedLikes);
-      // Toggle like status
       setHasLiked((prev) => !prev);
-      // Refresh comments to get updated like status
-      fetchComments();
     } catch (error) {
       toast.error(`Error liking post: ${error.message}`);
     }
   };
 
-  const handleCommentChange = (e) => {
-    setComment(e.target.value);
-  };
+  const handleReshare = async (comment) => {
+    const response = await fetch(
+      `${API_URL}/api/posts/${reshareTargetId}/reshare`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ comment }),
+      }
+    );
 
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-
-    if (!user) {
-      console.error("User not authenticated");
-      return;
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.msg || "Failed to reshare");
     }
 
+    const newPost = await response.json();
+    setHasReshared(true);
+    onReshared?.(newPost);
+    toast.success("Post reshared to your feed");
+  };
+
+  const handleUpdate = async () => {
+    if (!editText.trim() && !isReshare) return;
     try {
-      const response = await fetch(
-        `${API_URL}/api/posts/${_id}/comments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({ text: comment }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to add comment: ${response.statusText}`);
-      }
-
-      const newComment = await response.json();
-      setComments((prevComments) => [newComment, ...prevComments]);
-      setComment(""); // Clear the comment input field
+      const response = await fetch(`${API_URL}/api/posts/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ text: editText }),
+      });
+      if (!response.ok) throw new Error("Failed to update post");
+      const updated = await response.json();
+      setPostText(updated.text);
+      setIsEditing(false);
+      onUpdated?.(updated);
+      toast.success("Post updated");
     } catch (error) {
-      console.error("Error adding comment:", error.message);
+      toast.error(error.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${_id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) throw new Error("Failed to delete post");
+      onDeleted?.(_id);
+      toast.success("Post deleted");
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
   return (
-    <div className="my-5 py-4 bg-white border-2 border-neutral-200 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-      <div>
-        {/* Profile section */}
-        {author ? (
-          <div className="flex justify-start items-center px-4 sm:px-6 mb-3">
-            <Link to={`/profile/${author._id}`} className="hover:opacity-80 transition-opacity">
-              <img
-                className="rounded-full mr-3 object-cover bg-neutral-100 border-2 border-neutral-300"
-                src={
-                  author.profileImage
-                    ? `${API_URL}${author.profileImage}`
-                    : ""
-                }
-                alt={`${author.name}'s profile`}
-                style={{ width: "50px", height: "50px" }}
+    <div className="my-5 bg-white border border-neutral-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+      {isReshare && (
+        <div className="flex items-center gap-2 px-4 sm:px-6 pt-3 text-xs text-neutral-500 font-medium">
+          <IoMdRepeat className="text-base text-primary-600" />
+          <span>
+            <Link
+              to={`/profile/${author._id}`}
+              className="font-semibold text-neutral-700 hover:text-primary-700 hover:underline"
+            >
+              {author.name}
+            </Link>{" "}
+            reshared this
+          </span>
+        </div>
+      )}
+
+      {author ? (
+        <div className="flex justify-between items-start px-4 sm:px-6 pt-4 pb-2">
+          <div className="flex items-start">
+            <Link
+              to={`/profile/${author._id}`}
+              className="hover:opacity-90 transition-opacity mr-3 shrink-0"
+            >
+              <UserAvatar
+                name={author.name}
+                profileImage={author.profileImage}
+                token={user?.token}
+                size={48}
               />
             </Link>
-            <div className="text-xs sm:text-sm">
+            <div className="text-sm min-w-0">
               <Link to={`/profile/${author._id}`}>
-                <h3 className="font-bold text-neutral-800 hover:text-primary-600 transition-colors">
+                <h3 className="font-semibold text-neutral-900 hover:text-primary-700 hover:underline leading-tight">
                   {author.name}
                 </h3>
               </Link>
-              <p className="text-neutral-600">
-                {author.department} | Level {author.academicLevel === 600 ? "Graduate" : author.academicLevel}
+              <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                {author.department} · Level{" "}
+                {author.academicLevel === 600 ? "Graduate" : author.academicLevel}
               </p>
-              <p className="flex items-center text-neutral-500 text-xs">
+              <p className="flex items-center text-xs text-neutral-500 mt-0.5">
                 {formattedDate}
-                <span className="ml-1">
-                  <IoMdGlobe className="text-sm" />
-                </span>
+                <span className="mx-1">·</span>
+                <IoMdGlobe className="text-sm" aria-label="Public" />
               </p>
+            </div>
+          </div>
+          {isAuthor && (
+            <div className="flex gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsEditing((v) => !v)}
+                className="p-2 text-neutral-500 hover:text-primary-600 rounded-full hover:bg-neutral-100"
+                aria-label="Edit post"
+              >
+                <FaEdit />
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-2 text-neutral-500 hover:text-red-600 rounded-full hover:bg-neutral-100"
+                aria-label="Delete post"
+              >
+                <FaTrash />
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="px-4 sm:px-6 pt-4 text-neutral-500">Loading...</div>
+      )}
+
+      <div className="px-4 sm:px-6 pb-2">
+        {isEditing ? (
+          <div>
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              placeholder={isReshare ? "Edit your reshare comment…" : "Edit post…"}
+              className="w-full border border-neutral-300 rounded-lg p-3 focus:border-primary-500 focus:ring-1 focus:ring-primary-200"
+              rows={3}
+            />
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={handleUpdate}
+                className="bg-primary-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-primary-700"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditText(postText);
+                }}
+                className="bg-neutral-100 text-neutral-700 px-4 py-2 rounded-full text-sm font-semibold hover:bg-neutral-200"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         ) : (
-          <div className="px-4 sm:px-6 text-neutral-500">Loading...</div>
-        )}
-
-        {/* Text post */}
-        <div className="my-3 px-4 sm:px-6">
-          <p className="text-neutral-800 leading-relaxed whitespace-pre-wrap">{text}</p>
-        </div>
-
-        {/* Picture post */}
-        {image && (
-          <div className="px-4 sm:px-6 mb-3">
-            <img
-              className="mx-0 w-full rounded-lg object-cover max-h-[500px]"
-              src={`${API_URL}${image}`}
-              alt="Post content"
-            />
-          </div>
-        )}
-
-        {/* Total reaction section */}
-        <div className="flex justify-between items-center my-2 mx-4 border-b-2 border-neutral-200 mb-5 pb-2">
-          <button
-            onClick={handleLike}
-            className="flex text-3xl items-center"
-            aria-label={hasLiked ? "Unlike this post" : "Like this post"}
-          >
-            {hasLiked ? (
-              <FcLike className="text-primary-600 rounded-full p-[3px]" />
-            ) : (
-              <FaHeart className="text-neutral-400 rounded-full p-1" />
+          <>
+            {postText && (
+              <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-wrap mb-2">
+                {postText}
+              </p>
             )}
-            <p className={`ml-[1rem] text-[1rem] ${hasLiked ? 'text-primary-600 font-semibold' : 'text-neutral-600'}`}>{likes}</p>
-          </button>
-
-          <div className="flex text-[1rem] mx-4">
-            <p className="pr-4">{comments.length} comments</p>
-          </div>
-        </div>
-
-        {/* Reaction and repost section */}
-        <div className="flex justify-between mx-4 sm:mx-8 px-4 py-2 border-t border-neutral-200 text-sm">
-          <button
-            onClick={handleLike}
-            className="flex items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-100 transition-colors"
-          >
-            <AiFillLike className={`text-2xl mr-1 ${hasLiked ? 'text-primary-600' : 'text-neutral-600'}`} /> 
-            <span className={hasLiked ? 'text-primary-600 font-semibold' : 'text-neutral-600'}>Like</span>
-          </button>
-          <button
-            onClick={() => setShowCommentForm((prev) => !prev)}
-            className="flex items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-100 transition-colors"
-          >
-            <FaCommentDots className="text-2xl text-neutral-600 mr-1" /> 
-            <span className="text-neutral-600">Comment</span>
-          </button>
-          <button className="flex items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-100 transition-colors">
-            <IoIosSend className="text-2xl text-neutral-600 mr-1" /> 
-            <span className="text-neutral-600">Send</span>
-          </button>
-        </div>
-
-        {showCommentForm && (
-          <form
-            id={`comment-form-${_id}`}
-            className="mx-8 mt-5"
-            onSubmit={handleAddComment}
-          >
-            <input
-              type="text"
-              value={comment}
-              onChange={handleCommentChange}
-              placeholder="Add a comment"
-              className="border-2 border-neutral-300 rounded-full w-full py-2 px-4 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
-            />
-            <button
-              type="submit"
-              className="mt-3 ml-0 bg-primary-600 hover:bg-primary-700 duration-300 text-white font-medium py-1 px-2 rounded-lg mr-0 shadow-md hover:shadow-lg transition-all"
-            >
-              <IoIosSend className="text-2xl text-white mr-1" />
-            </button>
-          </form>
+            {isReshare && reshareOf && (
+              <EmbeddedPost post={reshareOf} token={user?.token} />
+            )}
+          </>
         )}
-
-        {/* Comments section */}
-        <div className="mt-5">
-          {comments.map((comment) => (
-            <div key={comment._id} className="flex items-center mx-8 mb-3">
-              <img
-                className="rounded-full mr-2 object-cover border-2 border-neutral-200"
-                src={
-                  comment.user.profileImage
-                    ? `${API_URL}${comment.user.profileImage}`
-                    : ""
-                }
-                alt={`${comment.user.name}'s profile`}
-                style={{ width: "30px", height: "30px" }}
-              />
-              <div className="bg-neutral-50 border border-neutral-200 p-3 rounded-lg flex-1">
-                <h4 className="font-bold text-neutral-800 mb-1">{comment.user.name}</h4>
-                <p className="text-neutral-700">{comment.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
+
+      {!isReshare && imageSrc && (
+        <div className="px-4 sm:px-6 pb-3">
+          <img
+            className="w-full rounded-lg object-cover max-h-[500px]"
+            src={imageSrc}
+            alt="Post content"
+          />
+        </div>
+      )}
+
+      <PostComments
+        postId={_id}
+        token={user?.token}
+        currentUser={viewer}
+        likes={likes}
+        hasLiked={hasLiked}
+        onLike={handleLike}
+        onReshare={() => setReshareModalOpen(true)}
+        hasReshared={hasReshared}
+        comments={comments}
+        setComments={setComments}
+      />
+
+      <ReshareModal
+        isOpen={reshareModalOpen}
+        onClose={() => setReshareModalOpen(false)}
+        currentUser={viewer}
+        token={user?.token}
+        originalPost={originalForReshare}
+        onReshare={handleReshare}
+      />
     </div>
   );
 };

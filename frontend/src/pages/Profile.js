@@ -4,6 +4,7 @@ import { useAuthContext } from "../hooks/useAuthContext";
 import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import API_URL from "../config";
+import UserAvatar from "../components/UserAvatar";
 
 const Profile = () => {
   const { id } = useParams();
@@ -225,17 +226,13 @@ const Profile = () => {
         <div className="profile-container max-w-2xl mx-auto my-6 sm:my-10 p-6 sm:p-8 bg-white rounded-2xl shadow-xl border-2 border-neutral-200">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <div className="flex justify-center items-center w-32 h-32 sm:w-40 sm:h-40 border-4 border-primary-400 rounded-full bg-neutral-100 text-center shadow-lg">
-                <img
-                  className="rounded-full object-cover w-full h-full"
-                  src={
-                    userInfo?.profileImage
-                      ? `${API_URL}${userInfo.profileImage}`
-                      : ""
-                  }
-                  alt={`${userInfo?.name || 'User'}'s profile`}
-                />
-              </div>
+              <UserAvatar
+                name={userInfo?.name}
+                profileImage={userInfo?.profileImage}
+                token={user?.token}
+                size={160}
+                className="border-4 border-primary-400 shadow-lg"
+              />
             </div>
           </div>
 

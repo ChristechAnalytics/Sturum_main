@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_URL from "../config";
+import UserAvatar from "../components/UserAvatar";
 
 const MyNetwork = () => {
   const { user } = useAuthContext();
@@ -158,16 +159,12 @@ const MyNetwork = () => {
                   className="bg-primary-50 border-2 border-primary-100 rounded-xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="flex items-center">
-                    <Link to={`/profile/${request._id}`}>
-                      <img
-                        className="rounded-full object-cover mr-4"
-                        src={
-                          request.profileImage
-                            ? `${API_URL}${request.profileImage}`
-                            : ""
-                        }
-                        alt={request.name}
-                        style={{ width: "60px", height: "60px" }}
+                    <Link to={`/profile/${request._id}`} className="mr-4">
+                      <UserAvatar
+                        name={request.name}
+                        profileImage={request.profileImage}
+                        token={user?.token}
+                        size={60}
                       />
                     </Link>
                     <div>
@@ -205,15 +202,12 @@ const MyNetwork = () => {
                   to={`/profile/${connection._id}`}
                   className="bg-primary-50 rounded-lg p-4 flex items-center hover:bg-primary-100 border-2 border-transparent hover:border-primary-200 transition-all shadow-sm hover:shadow-md"
                 >
-                  <img
-                    className="rounded-full object-cover mr-4 border-2 border-primary-200"
-                    src={
-                      connection.profileImage
-                        ? `${API_URL}${connection.profileImage}`
-                        : ""
-                    }
-                    alt={connection.name}
-                    style={{ width: "60px", height: "60px" }}
+                  <UserAvatar
+                    name={connection.name}
+                    profileImage={connection.profileImage}
+                    token={user?.token}
+                    size={60}
+                    className="mr-4 border-2 border-primary-200"
                   />
                   <div>
                     <h3 className="font-bold text-lg text-neutral-800">{connection.name}</h3>

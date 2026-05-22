@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaUserPlus, FaCheck, FaSpinner } from "react-icons/fa";
 import API_URL from "../config";
+import UserAvatar from "../components/UserAvatar";
 
 const Discover = () => {
   const { user } = useAuthContext();
@@ -220,17 +221,13 @@ const Discover = () => {
                       to={`/profile/${discoverUser._id}`}
                       className="flex flex-col items-center mb-4"
                     >
-                      <div className="w-20 h-20 rounded-full border-4 border-primary-200 overflow-hidden mb-3 bg-neutral-100">
-                        <img
-                          src={
-                            discoverUser.profileImage
-                              ? `${API_URL}${discoverUser.profileImage}`
-                              : ""
-                          }
-                          alt={discoverUser.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      <UserAvatar
+                        name={discoverUser.name}
+                        profileImage={discoverUser.profileImage}
+                        token={user?.token}
+                        size={80}
+                        className="mb-3 border-4 border-primary-200"
+                      />
                       <h3 className="text-xl font-bold text-neutral-800 text-center mb-1">
                         {discoverUser.name}
                       </h3>

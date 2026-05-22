@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const { isValidDepartment, normalizeDepartment } = require("../constants/departments");
 
 const Schema = mongoose.Schema;
 
@@ -9,15 +10,10 @@ const userSchema = new Schema(
     department: {
       type: String,
       required: true,
-      enum: [
-        "Meteorology and Climate Change",
-        "Marine Geology",
-        "Marine Environmental and Pollution",
-        "Marine Transport and Logistics",
-        "Fisheries and Aquaculture",
-        "Marine Economics and Finance",
-        "Port Management",
-      ],
+      validate: {
+        validator: (v) => isValidDepartment(v),
+        message: "Please select a valid department from the list",
+      },
     },
     name: {
       type: String,
@@ -98,13 +94,13 @@ userSchema.statics.signup = async function (department, name, email, password, c
     throw Error("Academic level must be a valid number");
   }
 
-  const user = await this.create({ 
-    department, 
-    name, 
-    email, 
+  const user = await this.create({
+    department: normalizeDepartment(department),
+    name,
+    email,
     password: hash,
     contact: contactNumber,
-    academicLevel: academicLevelNumber
+    academicLevel: academicLevelNumber,
   });
 
   return user;

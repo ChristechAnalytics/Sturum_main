@@ -15,6 +15,10 @@ const materialSchema = new Schema({
     type: String,
     required: true,
   },
+  department: {
+    type: String,
+    required: true,
+  },
   authorId: {
     type: Schema.Types.ObjectId,
     ref: "User",

@@ -4,6 +4,8 @@ import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
 import API_URL from "../config";
+import { downloadFile } from "../utils/api";
+import UserAvatar from "../components/UserAvatar";
 
 const SearchResults = () => {
   const [results, setResults] = useState([]);
@@ -58,14 +60,13 @@ const SearchResults = () => {
                 {result.type === "user" ? (
                   <Link to={`/profile/${result._id}`}>
                     <div className="flex items-center">
-                      {result.profileImage && (
-                        <img
-                          src={`${API_URL}${result.profileImage}`}
-                          alt={result.title}
-                          className="rounded-full mr-4 border-2 border-primary-200"
-                          style={{ width: "50px", height: "50px" }}
-                        />
-                      )}
+                      <UserAvatar
+                        name={result.title}
+                        profileImage={result.profileImage}
+                        token={user?.token}
+                        size={50}
+                        className="mr-4 border-2 border-primary-200"
+                      />
                       <div>
                         <h2 className="text-xl font-bold text-primary-700">{result.title}</h2>
                         <p className="text-neutral-600">{result.description}</p>
@@ -79,14 +80,13 @@ const SearchResults = () => {
                   <Link to="/home">
                     <div>
                       <div className="flex items-center mb-2">
-                        {result.author?.profileImage && (
-                          <img
-                            src={`${API_URL}${result.author.profileImage}`}
-                            alt={result.author.name}
-                            className="rounded-full mr-2 border-2 border-neutral-200"
-                            style={{ width: "30px", height: "30px" }}
-                          />
-                        )}
+                        <UserAvatar
+                          name={result.author?.name}
+                          profileImage={result.author?.profileImage}
+                          token={user?.token}
+                          size={30}
+                          className="mr-2 border-2 border-neutral-200"
+                        />
                         <span className="font-semibold text-primary-600">
                           {result.author?.name}
                         </span>
@@ -102,14 +102,15 @@ const SearchResults = () => {
                     <h2 className="text-xl font-bold text-neutral-800">{result.title}</h2>
                     <p className="text-neutral-600 mb-2">{result.description}</p>
                     {result.fileUrl && (
-                      <a
-                        href={`${API_URL}${result.fileUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadFile(result.fileUrl, user.token, result.title)
+                        }
                         className="text-primary-600 hover:text-primary-700 font-semibold hover:underline"
                       >
                         Download Material
-                      </a>
+                      </button>
                     )}
                   </div>
                 )}

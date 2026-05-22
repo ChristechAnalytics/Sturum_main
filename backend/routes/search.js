@@ -5,7 +5,6 @@ const Post = require("../models/Post");
 const Material = require("../models/Material");
 const User = require("../models/User");
 
-// Search endpoint
 router.get("/", protect, async (req, res) => {
   try {
     const { query } = req.query;
@@ -16,26 +15,20 @@ router.get("/", protect, async (req, res) => {
 
     const searchQuery = query.trim();
 
-    // Search in posts (only from user's department)
     const posts = await Post.find({
       department: req.user.department,
-      $or: [
-        { text: { $regex: searchQuery, $options: "i" } },
-      ],
+      text: { $regex: searchQuery, $options: "i" },
     })
       .populate("authorId", "name profileImage department academicLevel")
       .limit(10);
 
-    // Search in materials
     const materials = await Material.find({
-      $or: [
-        { title: { $regex: searchQuery, $options: "i" } },
-      ],
+      department: req.user.department,
+      title: { $regex: searchQuery, $options: "i" },
     })
       .populate("authorId", "name")
       .limit(10);
 
-    // Search in users (same department)
     const users = await User.find({
       department: req.user.department,
       $or: [
@@ -46,7 +39,6 @@ router.get("/", protect, async (req, res) => {
       .select("-password")
       .limit(10);
 
-    // Format results
     const results = [
       ...posts.map((post) => ({
         _id: post._id,

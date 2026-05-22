@@ -145,6 +145,10 @@ Sturum/
 
 ## API Endpoints
 
+### Departments
+- `GET /api/departments?q=search` - Search departments by name or faculty
+- `GET /api/departments/all` - Full department list (signup picker)
+
 ### Authentication
 - `POST /api/users/signup` - User registration
 - `POST /api/users/login` - User login
@@ -157,8 +161,15 @@ Sturum/
 - `POST /api/posts/:postId/comments` - Add a comment
 
 ### Materials
-- `GET /api/materials` - Get all materials
+- `GET /api/materials` - Get materials (department filtered)
 - `POST /api/materials` - Upload a material
+- `DELETE /api/materials/:id` - Delete own material
+
+### Files
+- `GET /api/files/:filename` - Authenticated file access (Bearer or `?token=`)
+
+### Auth
+- `POST /api/auth/refresh` - Refresh access token
 
 ### Messaging
 - `GET /api/messages/:chatId` - Get messages for a chat
@@ -175,16 +186,15 @@ Sturum/
 ### Search
 - `GET /api/search?query=searchterm` - Search posts, materials, and users
 
-## Default User Departments
+## Departments
 
-The platform supports the following departments:
-- Meteorology and Climate Change
-- Marine Geology
-- Marine Environmental and Pollution
-- Marine Transport and Logistics
-- Fisheries and Aquaculture
-- Marine Economics and Finance
-- Port Management
+Students choose their department during signup using a **searchable picker** (filter by name or faculty).
+
+- **API:** `GET /api/departments?q=computer` — search departments (public)
+- **API:** `GET /api/departments/all` — full list with categories (public)
+- **Source of truth:** `backend/constants/departments.js` (80+ departments across marine, engineering, sciences, business, health, law, arts, agriculture, education, and more)
+
+To add or edit departments, update `backend/constants/departments.js` and redeploy the backend.
 
 ## Troubleshooting
 
@@ -216,9 +226,23 @@ The platform supports the following departments:
 ## Development Notes
 
 - The `uploads` directory is created automatically when the server starts
-- File uploads are stored in `backend/uploads/`
-- JWT tokens expire after 3 days
-- Socket.IO is used for real-time messaging
+- File uploads are stored in `backend/uploads/` and served only via authenticated `/api/files/:filename`
+- Access tokens expire after 3 days; refresh tokens after 7 days (`POST /api/auth/refresh`)
+- Socket.IO requires JWT auth and delivers events to user-specific rooms
+- Study materials are scoped by department; run migration for existing data:
+
+```bash
+cd backend
+node scripts/migrate-material-departments.js
+```
+
+## Production Checklist
+
+- Set `NODE_ENV=production` on the backend
+- Use strong `SECRET` and `REFRESH_SECRET` values
+- Set `FRONTEND_URL` to your deployed frontend origin (no trailing slash)
+- Run the materials migration script if upgrading an existing database
+- Configure MongoDB Atlas network access and backups
 
 ## License
 

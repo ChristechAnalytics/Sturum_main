@@ -1,23 +1,10 @@
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
 const { signupUser, loginUser } = require("../controllers/userController");
 const { protect } = require("../middleware/requireAuth");
+const { upload, handleUploadError } = require("../utils/upload");
 const User = require("../models/User");
 
 const router = express.Router();
-
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Use path.extname to handle file extensions
-  },
-});
-
-const upload = multer({ storage: storage });
 
 // Signup route
 router.post("/signup", signupUser);
@@ -164,22 +151,28 @@ router.get("/discover", protect, async (req, res) => {
 
 // Get a user's profile by ID - MUST be last to avoid matching other routes
 router.get("/:id", protect, async (req, res) => {
-  console.log("Fetching user info for ID:", req.params.id); // Log the requested ID
   try {
     const user = await User.findById(req.params.id).select("-password");
     if (!user) {
-      console.log("User not found for ID:", req.params.id); // Log if user not found
       return res.status(404).json({ message: "User not found" });
     }
+
+    const isSelf = user._id.toString() === req.user._id.toString();
+    const sameDepartment = user.department === req.user.department;
+
+    if (!isSelf && !sameDepartment) {
+      return res.status(403).json({ message: "Profile not available" });
+    }
+
     res.json(user);
   } catch (err) {
-    console.error("Error fetching user info:", err); // Detailed error logging
+    console.error("Error fetching user info:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
 // Update current user's profile
-router.put("/me", protect, upload.single("profileImage"), async (req, res) => {
+router.put("/me", protect, upload.single("profileImage"), handleUploadError, async (req, res) => {
   const { contact, academicLevel } = req.body;
   const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
 
@@ -243,6 +236,10 @@ router.post("/friend-request/:id", protect, async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
+    if (recipient.department !== sender.department) {
+      return res.status(400).json({ msg: "You can only connect with students in your department" });
+    }
+
     // Check if already friends
     if (recipient.friends.includes(senderId) || sender.friends.includes(recipientId)) {
       return res.status(400).json({ msg: "You are already friends with this user" });
@@ -289,9 +286,15 @@ router.post("/friend-request/:id", protect, async (req, res) => {
       return res.json({ msg: "Friend request accepted automatically", autoAccepted: true });
     }
 
-    // Add the current user's ID to the recipient's friendRequests array
     recipient.friendRequests.push(senderId);
     await recipient.save();
+
+    if (req.io) {
+      req.io.to(`user:${recipientId}`).emit("notification", {
+        type: "friend_request",
+        count: recipient.friendRequests.length,
+      });
+    }
 
     res.json({ msg: "Friend request sent successfully" });
   } catch (err) {

@@ -40,7 +40,7 @@ const Materials = () => {
 
       const data = await response.json();
       setMaterials(data);
-      setFilteredMaterials(data, selectedCategory);
+      filterMaterials(data, selectedCategory);
     } catch (error) {
       console.error("Error fetching materials:", error.message);
     }
@@ -82,7 +82,25 @@ const Materials = () => {
     }
   };
 
-  // Handle material upload
+  const handleDelete = async (materialId) => {
+    if (!window.confirm("Delete this material?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/materials/${materialId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Delete failed");
+      }
+      const updated = materials.filter((m) => m._id !== materialId);
+      setMaterials(updated);
+      filterMaterials(updated, selectedCategory);
+    } catch (error) {
+      console.error("Error deleting material:", error.message);
+    }
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     try {
@@ -215,11 +233,14 @@ const Materials = () => {
         {filteredMaterials.map((material) => (
           <MaterialCard
             key={material._id}
+            _id={material._id}
             title={material.title}
             fileUrl={material.fileUrl}
             category={material.category}
             uploadedAt={material.uploadedAt}
-            author={material.authorId.name}
+            author={material.authorId?.name || material.authorId}
+            authorId={material.authorId?._id || material.authorId}
+            onDelete={handleDelete}
           />
         ))}
 

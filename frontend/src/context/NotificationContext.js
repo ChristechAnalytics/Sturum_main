@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useSocket } from "./SocketContext";
 import API_URL from "../config";
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const { user } = useAuthContext();
+  const { socket } = useSocket();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [messageCount, setMessageCount] = useState(0);
 
   const fetchNotificationCount = async () => {
     if (!user?.token) {
@@ -23,8 +26,7 @@ export const NotificationProvider = ({ children }) => {
 
       if (response.ok) {
         const userData = await response.json();
-        const count = userData.friendRequests?.length || 0;
-        setNotificationCount(count);
+        setNotificationCount(userData.friendRequests?.length || 0);
       }
     } catch (error) {
       console.error("Error fetching notification count:", error);
@@ -32,23 +34,42 @@ export const NotificationProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (user?.token) {
-      fetchNotificationCount();
-      
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(() => {
-        fetchNotificationCount();
-      }, 30000);
-
-      return () => clearInterval(interval);
-    } else {
+    if (!user?.token) {
       setNotificationCount(0);
+      setMessageCount(0);
+      return;
     }
+
+    fetchNotificationCount();
+    const interval = setInterval(fetchNotificationCount, 60000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.token]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (payload) => {
+      if (payload.type === "friend_request") {
+        setNotificationCount(payload.count ?? 0);
+        fetchNotificationCount();
+      }
+      if (payload.type === "message") {
+        setMessageCount((prev) => prev + 1);
+      }
+    };
+
+    socket.on("notification", handleNotification);
+    return () => socket.off("notification", handleNotification);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
 
   const clearNotifications = () => {
     setNotificationCount(0);
+  };
+
+  const clearMessageNotifications = () => {
+    setMessageCount(0);
   };
 
   const updateNotificationCount = (count) => {
@@ -59,8 +80,10 @@ export const NotificationProvider = ({ children }) => {
     <NotificationContext.Provider
       value={{
         notificationCount,
+        messageCount,
         fetchNotificationCount,
         clearNotifications,
+        clearMessageNotifications,
         updateNotificationCount,
       }}
     >

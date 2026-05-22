@@ -10,6 +10,9 @@ import "../styles/Modal.css";
 import "react-toastify/dist/ReactToastify.css";
 import PostModal from "../DEPT-components/PostModal";
 import API_URL from "../config";
+import UserAvatar from "../components/UserAvatar";
+import { useSocket } from "../context/SocketContext";
+import { mergePost } from "../utils/posts";
 
 Modal.setAppElement("#root");
 
@@ -17,6 +20,7 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const { user } = useAuthContext();
+  const { socket } = useSocket();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
@@ -123,9 +127,27 @@ const Home = () => {
     document.body.classList.toggle("overflow-hidden", modalIsOpen);
   }, [modalIsOpen]);
 
-  const profileImage = userInfo?.profileImage
-    ? `${API_URL}${userInfo.profileImage}`
-    : "";
+  const handlePostDeleted = (postId) => {
+    setPosts((prev) => prev.filter((p) => p._id !== postId));
+    setFilteredPosts((prev) => prev.filter((p) => p._id !== postId));
+  };
+
+  const handlePostReshared = (newPost) => {
+    setPosts((prev) => mergePost(prev, newPost));
+    setFilteredPosts((prev) => mergePost(prev, newPost));
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onReshare = ({ post }) => {
+      setPosts((prev) => mergePost(prev, post));
+      setFilteredPosts((prev) => mergePost(prev, post));
+    };
+
+    socket.on("post_reshare", onReshare);
+    return () => socket.off("post_reshare", onReshare);
+  }, [socket]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
@@ -141,14 +163,15 @@ const Home = () => {
           <div id="post" className="my-5 p-4 sm:p-6 bg-white border-2 border-neutral-200 rounded-xl shadow-md">
             <div className="flex">
               <Link
-                className="flex items-center cursor-pointer rounded-full border-5 border-black mr-3 bg-white"
+                className="flex items-center cursor-pointer mr-3"
                 to={`/profile/${userInfo?._id}`}
               >
-                <img
-                  className="rounded-full object-cover border-2 border-neutral-300"
-                  src={profileImage}
-                  alt="Your profile"
-                  style={{ width: "50px", height: "50px" }}
+                <UserAvatar
+                  name={userInfo?.name || user?.name}
+                  profileImage={userInfo?.profileImage || user?.profileImage}
+                  token={user?.token}
+                  size={50}
+                  className="border-2 border-neutral-300"
                 />
               </Link>
               <div
@@ -172,7 +195,11 @@ const Home = () => {
             image={post.imageUrl}
             createdAt={post.createdAt}
             author={post.authorId}
-            comments={post.comments}
+            authorId={post.authorId?._id}
+            reshareOf={post.reshareOf}
+            currentUser={userInfo}
+            onDeleted={handlePostDeleted}
+            onReshared={handlePostReshared}
           />
         ))}
 
@@ -181,8 +208,8 @@ const Home = () => {
         <PostModal
           isOpen={modalIsOpen}
           onClose={() => setModalIsOpen(false)}
-          profileImage={profileImage}
           userInfo={userInfo}
+          token={user?.token}
           onPost={handlePost}
         />
       </div>
