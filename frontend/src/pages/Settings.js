@@ -21,6 +21,7 @@ import {
 } from "react-icons/fa";
 import API_URL from "../config";
 import ThemeToggle from "../components/ThemeToggle";
+import { useMediaViewer } from "../context/MediaViewerContext";
 import { PAGE_BG, PANEL, INPUT, TEXT_HEADING, TEXT_MUTED } from "../theme/classes";
 import { getPasswordHint, passwordsMatch } from "../utils/validation";
 import { formatContact } from "../utils/contact";
@@ -50,6 +51,7 @@ const Settings = () => {
   const { user, dispatch } = useAuthContext();
   const { logout } = useLogout();
   const navigate = useNavigate();
+  const { openViewer } = useMediaViewer();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
@@ -350,11 +352,19 @@ const Settings = () => {
         >
           <div className="flex items-center gap-4 mb-6 pb-6 border-b border-neutral-200">
             {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="New profile preview"
-                className="w-[72px] h-[72px] rounded-full object-cover border-2 border-primary-400 shrink-0"
-              />
+              <button
+                type="button"
+                onClick={() =>
+                  openViewer({ urls: [imagePreview], alt: "Profile preview" })
+                }
+                className="p-0 border-0 bg-transparent shrink-0 cursor-zoom-in rounded-full"
+              >
+                <img
+                  src={imagePreview}
+                  alt="New profile preview"
+                  className="w-[72px] h-[72px] rounded-full object-cover border-2 border-primary-400"
+                />
+              </button>
             ) : (
               <UserAvatar
                 name={profile?.name}

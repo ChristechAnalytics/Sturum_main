@@ -15,6 +15,8 @@ import Discover from "./pages/Discover";
 import Settings from "./pages/Settings";
 import { AuthContextProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { MediaViewerProvider } from "./context/MediaViewerContext";
+import MediaViewer from "./components/MediaViewer";
 import { SocketProvider } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import SearchResults from "./pages/SearchResults";
@@ -116,13 +118,16 @@ const App = () => {
   return (
     <ThemeProvider>
       <AuthContextProvider>
-        <SocketProvider>
-          <NotificationProvider>
-            <div className="App min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-200">
-              <AppRoutes />
-            </div>
-          </NotificationProvider>
-        </SocketProvider>
+        <MediaViewerProvider>
+          <SocketProvider>
+            <NotificationProvider>
+              <div className="App min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-200">
+                <AppRoutes />
+              </div>
+              <MediaViewer />
+            </NotificationProvider>
+          </SocketProvider>
+        </MediaViewerProvider>
       </AuthContextProvider>
     </ThemeProvider>
   );
