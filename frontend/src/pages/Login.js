@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Navbar from "../LP-components/Navbar";
 import { Link } from "react-router-dom";
 import { useLogin } from "../hooks/useLogin";
+import { FORM_CARD, INPUT } from "../theme/classes";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,19 +16,19 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors">
       <Navbar currentPage="login" />
       <div className="flex justify-center items-center min-h-[calc(100vh-80px)] px-4 py-8 pt-[5.2rem]">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-[500px] h-fit bg-white shadow-xl rounded-2xl my-[2rem] py-8 px-6 sm:px-8 pb-8 border border-gray-200"
+          className={`w-full max-w-[500px] h-fit ${FORM_CARD} my-[2rem] py-8 px-6 sm:px-8 pb-8`}
         >
-          <h1 className="text-3xl font-bold text-center text-[#424242] pb-6 mb-6">
+          <h1 className="text-3xl font-bold text-center text-neutral-800 dark:text-neutral-100 pb-6 mb-6">
             Welcome Back
           </h1>
 
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               Email:
             </label>
             <input
@@ -36,12 +37,12 @@ const Login = () => {
               id="email"
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+              className={INPUT}
               required
             />
           </div>
           <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               Password:
             </label>
             <input
@@ -50,7 +51,7 @@ const Login = () => {
               id="password"
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+              className={INPUT}
               required
             />
           </div>

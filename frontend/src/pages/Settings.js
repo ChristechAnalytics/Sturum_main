@@ -17,13 +17,15 @@ import {
   FaSignOutAlt,
   FaEnvelope,
   FaCheckCircle,
+  FaPalette,
 } from "react-icons/fa";
 import API_URL from "../config";
+import ThemeToggle from "../components/ThemeToggle";
+import { PAGE_BG, PANEL, INPUT, TEXT_HEADING, TEXT_MUTED } from "../theme/classes";
 import { getPasswordHint, passwordsMatch } from "../utils/validation";
 import { formatContact } from "../utils/contact";
 
-const inputClass =
-  "w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all";
+const inputClass = INPUT;
 
 const formatAcademicLevel = (level) => {
   if (level === 600) return "Graduate";
@@ -32,14 +34,12 @@ const formatAcademicLevel = (level) => {
 };
 
 const SettingSection = ({ title, description, icon, children, className = "" }) => (
-  <section
-    className={`bg-white rounded-xl shadow-lg border-2 border-neutral-200 p-6 mb-6 ${className}`}
-  >
+  <section className={`${PANEL} p-6 mb-6 ${className}`}>
     <div className="flex items-start gap-3 mb-5">
-      {icon && <div className="text-primary-600 mt-1 text-xl">{icon}</div>}
+      {icon && <div className="text-primary-600 dark:text-primary-400 mt-1 text-xl">{icon}</div>}
       <div>
-        <h2 className="text-xl font-bold text-neutral-800">{title}</h2>
-        {description && <p className="text-sm text-neutral-600 mt-1">{description}</p>}
+        <h2 className={`text-xl font-bold ${TEXT_HEADING}`}>{title}</h2>
+        {description && <p className={`text-sm ${TEXT_MUTED} mt-1`}>{description}</p>}
       </div>
     </div>
     {children}
@@ -294,18 +294,18 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+      <div className={PAGE_BG}>
         <Header />
         <NavbarMP />
         <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[720px] pb-8 mt-6">
-          <p className="text-neutral-500">Loading settings…</p>
+          <p className={TEXT_MUTED}>Loading settings…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[720px] pb-12 mt-6 sm:mt-8">
@@ -313,7 +313,15 @@ const Settings = () => {
         <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
           Settings
         </h1>
-        <p className="text-neutral-600 mb-8">Manage your account, profile, and preferences</p>
+        <p className={`${TEXT_MUTED} mb-8`}>Manage your account, profile, and preferences</p>
+
+        <SettingSection
+          title="Appearance"
+          description="Choose light, dark, or match your device"
+          icon={<FaPalette />}
+        >
+          <ThemeToggle />
+        </SettingSection>
 
         {!isEmailVerified && (
           <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-6">

@@ -13,6 +13,7 @@ import API_URL from "../config";
 import UserAvatar from "../components/UserAvatar";
 import { useSocket } from "../context/SocketContext";
 import { mergePost } from "../utils/posts";
+import { PAGE_BG, CARD, DIVIDER } from "../theme/classes";
 
 Modal.setAppElement("#root");
 
@@ -150,7 +151,7 @@ const Home = () => {
   }, [socket]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP onSearch={handleSearch} />
       <div
@@ -160,7 +161,7 @@ const Home = () => {
       >
         <div className="mb-5">
           {/* Create a post */}
-          <div id="post" className="my-5 p-4 sm:p-6 bg-white border-2 border-neutral-200 rounded-xl shadow-md">
+          <div id="post" className={`my-5 p-4 sm:p-6 ${CARD}`}>
             <div className="flex">
               <Link
                 className="flex items-center cursor-pointer mr-3"
@@ -171,20 +172,20 @@ const Home = () => {
                   profileImage={userInfo?.profileImage || user?.profileImage}
                   token={user?.token}
                   size={50}
-                  className="border-2 border-neutral-300"
+                  className="border-2 border-neutral-300 dark:border-neutral-600"
                 />
               </Link>
               <div
-                className="w-full border-2 border-neutral-300 rounded-full hover:bg-primary-50 hover:border-primary-400 cursor-pointer transition-all duration-300"
+                className="w-full border-2 border-neutral-300 dark:border-neutral-600 rounded-full hover:bg-primary-50 dark:hover:bg-neutral-700 hover:border-primary-400 cursor-pointer transition-all duration-300"
                 onClick={() => setModalIsOpen(true)}
               >
-                <p className="py-2 px-4 text-neutral-600">Start a post</p>
+                <p className="py-2 px-4 text-neutral-600 dark:text-neutral-400">Start a post</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-b-2 border-neutral-200 mb-5"></div>
+        <div className={`border-b-2 ${DIVIDER} mb-5`}></div>
 
         {/* Post card */}
         {filteredPosts.map((post) => (

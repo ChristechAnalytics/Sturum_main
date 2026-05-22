@@ -33,10 +33,6 @@ export const useLogin = () => {
 
       const json = await response.json();
 
-      // save user to local storage
-      localStorage.setItem("user", JSON.stringify(json));
-
-      // update AuthContext
       dispatch({ type: "LOGIN", payload: json });
       setIsLoading(false);
 

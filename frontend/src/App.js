@@ -14,6 +14,7 @@ import MyNetwork from "./pages/MyNetwork";
 import Discover from "./pages/Discover";
 import Settings from "./pages/Settings";
 import { AuthContextProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { SocketProvider } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import SearchResults from "./pages/SearchResults";
@@ -113,15 +114,17 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <AuthContextProvider>
-      <SocketProvider>
-        <NotificationProvider>
-          <div className="App">
-            <AppRoutes />
-          </div>
-        </NotificationProvider>
-      </SocketProvider>
-    </AuthContextProvider>
+    <ThemeProvider>
+      <AuthContextProvider>
+        <SocketProvider>
+          <NotificationProvider>
+            <div className="App min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors duration-200">
+              <AppRoutes />
+            </div>
+          </NotificationProvider>
+        </SocketProvider>
+      </AuthContextProvider>
+    </ThemeProvider>
   );
 };
 

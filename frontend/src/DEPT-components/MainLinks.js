@@ -12,7 +12,7 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/home" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1"
           >
             Home
           </Link>
@@ -20,7 +20,7 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/materials" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1"
           >
             Materials
           </Link>
@@ -28,12 +28,12 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/messaging" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1 relative"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1 relative"
             aria-label={`Messaging${messageCount > 0 ? ` (${messageCount} new)` : ''}`}
           >
             Messaging
             {messageCount > 0 && (
-              <span className="absolute -top-0.5 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
+              <span className="absolute -top-0.5 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center border-2 border-white dark:border-neutral-900">
                 {messageCount > 9 ? "9+" : messageCount}
               </span>
             )}
@@ -42,7 +42,7 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/mynetwork" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1"
           >
             Network
           </Link>
@@ -50,7 +50,7 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/discover" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1"
           >
             Discover
           </Link>
@@ -58,7 +58,7 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/settings" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium text-sm lg:text-base py-2 px-1"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium text-sm lg:text-base py-2 px-1"
           >
             Settings
           </Link>
@@ -66,12 +66,12 @@ const MainLinks = () => {
         <li>
           <Link 
             to="/notifications" 
-            className="text-neutral-700 hover:text-primary-600 transition-colors font-medium py-2 px-1 relative"
+            className="text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium py-2 px-1 relative"
             aria-label={`Notifications${notificationCount > 0 ? ` (${notificationCount} new)` : ''}`}
           >
             <IoMdNotificationsOutline className="text-xl lg:text-2xl" />
             {notificationCount > 0 && (
-              <span className="absolute top-1 right-0 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center animate-pulse border-2 border-white">
+              <span className="absolute top-1 right-0 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center animate-pulse border-2 border-white dark:border-neutral-900">
                 {notificationCount > 9 ? '9+' : notificationCount}
               </span>
             )}

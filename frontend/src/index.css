@@ -6,7 +6,7 @@
 
 @layer base {
     body {
-        @apply font-[Raleway];
+        @apply font-[Raleway] bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 transition-colors duration-200;
     }
 
     li {
@@ -41,4 +41,14 @@
 /* Smooth scrolling */
 html {
     scroll-behavior: smooth;
+}
+
+/* Toast notifications in dark mode */
+.dark .Toastify__toast-theme--light {
+    background: #262626;
+    color: #f5f5f5;
+}
+
+.dark .Toastify__close-button {
+    color: #a3a3a3;
 }

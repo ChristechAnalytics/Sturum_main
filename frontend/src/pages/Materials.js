@@ -6,6 +6,7 @@ import MaterialCard from "../DEPT-components/MateralCard";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { FaTimes } from "react-icons/fa";
 import API_URL from "../config";
+import { PAGE_BG } from "../theme/classes";
 
 Modal.setAppElement("#root");
 
@@ -161,7 +162,7 @@ const Materials = () => {
   }, [modalIsOpen]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP onSearch={handleSearch} />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[700px] pb-8">

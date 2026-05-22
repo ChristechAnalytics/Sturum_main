@@ -12,9 +12,7 @@ export const useTokenRefresh = () => {
       const data = await refreshAccessToken(user.refreshToken);
       if (!data?.token) return;
 
-      const updatedUser = { ...user, ...data };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      dispatch({ type: "LOGIN", payload: updatedUser });
+      dispatch({ type: "LOGIN", payload: { ...user, ...data } });
     };
 
     const interval = setInterval(refresh, 2 * 60 * 60 * 1000);

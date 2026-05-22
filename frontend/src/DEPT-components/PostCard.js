@@ -12,6 +12,7 @@ import UserAvatar from "../components/UserAvatar";
 import PostComments from "./PostComments";
 import EmbeddedPost from "./EmbeddedPost";
 import ReshareModal from "./ReshareModal";
+import { PANEL_SM, TEXT_BODY, TEXT_HEADING, TEXT_SUBTLE } from "../theme/classes";
 
 const PostCard = ({
   text,
@@ -202,14 +203,14 @@ const PostCard = ({
   };
 
   return (
-    <div className="my-5 bg-white border border-neutral-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+    <div className={`my-5 ${PANEL_SM} transition-shadow duration-300 overflow-hidden`}>
       {isReshare && (
-        <div className="flex items-center gap-2 px-4 sm:px-6 pt-3 text-xs text-neutral-500 font-medium">
+        <div className={`flex items-center gap-2 px-4 sm:px-6 pt-3 text-xs ${TEXT_SUBTLE} font-medium`}>
           <IoMdRepeat className="text-base text-primary-600" />
           <span>
             <Link
               to={`/profile/${author._id}`}
-              className="font-semibold text-neutral-700 hover:text-primary-700 hover:underline"
+              className={`font-semibold ${TEXT_BODY} hover:text-primary-700 dark:hover:text-primary-400 hover:underline`}
             >
               {author.name}
             </Link>{" "}
@@ -234,7 +235,7 @@ const PostCard = ({
             </Link>
             <div className="text-sm min-w-0">
               <Link to={`/profile/${author._id}`}>
-                <h3 className="font-semibold text-neutral-900 hover:text-primary-700 hover:underline leading-tight">
+                <h3 className={`font-semibold ${TEXT_HEADING} hover:text-primary-700 dark:hover:text-primary-400 hover:underline leading-tight`}>
                   {author.name}
                 </h3>
               </Link>
@@ -254,7 +255,7 @@ const PostCard = ({
               <button
                 type="button"
                 onClick={() => setIsEditing((v) => !v)}
-                className="p-2 text-neutral-500 hover:text-primary-600 rounded-full hover:bg-neutral-100"
+                className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-primary-600 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 aria-label="Edit post"
               >
                 <FaEdit />
@@ -281,7 +282,7 @@ const PostCard = ({
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               placeholder={isReshare ? "Edit your reshare comment…" : "Edit post…"}
-              className="w-full border border-neutral-300 rounded-lg p-3 focus:border-primary-500 focus:ring-1 focus:ring-primary-200"
+              className="w-full border border-neutral-300 dark:border-neutral-600 rounded-lg p-3 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-200 dark:focus:ring-primary-900"
               rows={3}
             />
             <div className="flex gap-2 mt-2">
@@ -298,7 +299,7 @@ const PostCard = ({
                   setIsEditing(false);
                   setEditText(postText);
                 }}
-                className="bg-neutral-100 text-neutral-700 px-4 py-2 rounded-full text-sm font-semibold hover:bg-neutral-200"
+                className="bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 px-4 py-2 rounded-full text-sm font-semibold hover:bg-neutral-200 dark:hover:bg-neutral-600"
               >
                 Cancel
               </button>
@@ -307,7 +308,7 @@ const PostCard = ({
         ) : (
           <>
             {postText && (
-              <p className="text-neutral-800 text-[15px] leading-relaxed whitespace-pre-wrap mb-2">
+              <p className={`${TEXT_BODY} text-[15px] leading-relaxed whitespace-pre-wrap mb-2`}>
                 {postText}
               </p>
             )}

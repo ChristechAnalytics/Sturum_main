@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaUserPlus, FaCheck, FaSpinner } from "react-icons/fa";
 import API_URL from "../config";
+import { PAGE_BG } from "../theme/classes";
 import UserAvatar from "../components/UserAvatar";
 
 const Discover = () => {
@@ -177,7 +178,7 @@ const Discover = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-7xl pb-8">

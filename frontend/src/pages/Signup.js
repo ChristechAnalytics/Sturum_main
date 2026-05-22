@@ -3,6 +3,7 @@ import Navbar from "../LP-components/Navbar";
 import { Link } from "react-router-dom";
 import { useSignup } from "../hooks/useSignup";
 import DepartmentPicker from "../components/DepartmentPicker";
+import { FORM_CARD } from "../theme/classes";
 import {
   isValidEmail,
   normalizeEmail,
@@ -11,10 +12,10 @@ import {
 } from "../utils/validation";
 
 const inputClass = (hasError) =>
-  `w-full px-4 py-3 border-2 rounded-lg focus:ring-2 transition-all ${
+  `w-full px-4 py-3 border-2 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 transition-all ${
     hasError
-      ? "border-red-400 focus:border-red-500 focus:ring-red-100"
-      : "border-neutral-300 focus:border-primary-500 focus:ring-primary-200"
+      ? "border-red-400 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-900"
+      : "border-neutral-300 dark:border-neutral-600 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-200 dark:focus:ring-primary-900"
   }`;
 
 const Signup = () => {
@@ -85,7 +86,7 @@ const Signup = () => {
   const passwordsOk = passwordsMatch(password, confirmPassword);
 
   return (
-    <div>
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors">
       <Navbar currentPage="signup" />
       <div className="pt-[4.5rem]">
         {successMessage ? (
@@ -100,7 +101,7 @@ const Signup = () => {
           <form
             onSubmit={handleSubmit}
             noValidate
-            className="w-full max-w-[500px] h-fit bg-white shadow-xl rounded-2xl my-[2rem] py-8 px-6 sm:px-8 pb-8 border border-gray-200"
+            className={`w-full max-w-[500px] h-fit ${FORM_CARD} my-[2rem] py-8 px-6 sm:px-8 pb-8`}
           >
             <h1 className="text-3xl font-bold text-center text-[#424242] pb-6 mb-6">
               Create Your Account

@@ -4,6 +4,7 @@ import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
 import API_URL from "../config";
+import { PAGE_BG } from "../theme/classes";
 import { downloadFile } from "../utils/api";
 import UserAvatar from "../components/UserAvatar";
 
@@ -43,7 +44,7 @@ const SearchResults = () => {
   }, [query, user]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[700px] pb-8">

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_URL from "../config";
+import { PAGE_BG } from "../theme/classes";
 import UserAvatar from "../components/UserAvatar";
 
 const Notifications = () => {
@@ -137,7 +138,7 @@ const Notifications = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+      <div className={PAGE_BG}>
         <Header />
         <NavbarMP />
         <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[700px] pb-8">
@@ -150,7 +151,7 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50">
+    <div className={PAGE_BG}>
       <Header />
       <NavbarMP />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] px-4 sm:px-6 mx-auto max-w-[700px] pb-8">

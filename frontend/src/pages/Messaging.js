@@ -3,6 +3,7 @@ import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import { useAuthContext } from "../hooks/useAuthContext";
 import API_URL from "../config";
+import { PAGE_BG } from "../theme/classes";
 import { useNotification } from "../context/NotificationContext";
 import { useSocket } from "../context/SocketContext";
 import {
@@ -178,26 +179,26 @@ const Messaging = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/20 to-neutral-50 flex flex-col">
+    <div className={`${PAGE_BG} flex flex-col`}>
       <Header />
       <NavbarMP />
       <div className="pt-[7rem] sm:pt-[7.125rem] md:pt-[8rem] flex flex-1 h-[calc(100vh-7rem)] sm:h-[calc(100vh-7.125rem)] md:h-[calc(100vh-8rem)]">
         <div className="w-full max-w-7xl mx-auto flex flex-1">
-          <div className="w-full sm:w-1/3 md:w-1/4 bg-white border-r border-neutral-300 p-4 overflow-y-auto shadow-lg">
-            <h2 className="text-xl font-bold mb-4 text-neutral-800">Connections</h2>
+          <div className="w-full sm:w-1/3 md:w-1/4 bg-white dark:bg-neutral-800 border-r border-neutral-300 dark:border-neutral-700 p-4 overflow-y-auto shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-100">Connections</h2>
             {connections.length > 0 ? (
               connections.map((connection) => (
                 <div
                   key={connection._id}
                   onClick={() => selectChat(connection._id)}
-                  className={`cursor-pointer p-3 hover:bg-primary-50 rounded-lg mb-2 transition-all duration-300 border-2 ${
+                  className={`cursor-pointer p-3 hover:bg-primary-50 dark:hover:bg-neutral-700 rounded-lg mb-2 transition-all duration-300 border-2 ${
                     toIdString(currentChat) === toIdString(connection._id)
-                      ? "bg-primary-100 border-primary-400"
-                      : "border-transparent hover:border-primary-200"
+                      ? "bg-primary-100 dark:bg-primary-900/40 border-primary-400"
+                      : "border-transparent hover:border-primary-200 dark:hover:border-neutral-600"
                   }`}
                 >
-                  <h3 className="font-semibold text-neutral-800">{connection.name}</h3>
-                  <p className="text-sm text-neutral-600">{connection.email}</p>
+                  <h3 className="font-semibold text-neutral-800 dark:text-neutral-100">{connection.name}</h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{connection.email}</p>
                 </div>
               ))
             ) : (
@@ -212,9 +213,9 @@ const Messaging = () => {
 
           <div className="hidden sm:flex w-2/3 md:w-3/4 p-4 flex-col">
             {currentChat ? (
-              <div className="bg-white border-2 border-neutral-200 rounded-xl shadow-lg flex flex-col h-full">
-                <div className="p-4 border-b-2 border-neutral-200 bg-gradient-to-r from-primary-50 to-white">
-                  <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">
+              <div className="bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg flex flex-col h-full">
+                <div className="p-4 border-b-2 border-neutral-200 dark:border-neutral-700 bg-gradient-to-r from-primary-50 to-white dark:from-neutral-800 dark:to-neutral-900">
+                  <h2 className="text-xl sm:text-2xl font-bold text-neutral-800 dark:text-neutral-100">
                     {chatPartner?.name || "Chat"}
                   </h2>
                 </div>

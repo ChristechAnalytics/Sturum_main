@@ -118,7 +118,7 @@ const CommentItem = ({
                 onChange={(e) => onReplyTextChange(e.target.value)}
                 placeholder={`Reply to ${name}…`}
                 autoFocus
-                className="flex-1 text-sm border border-neutral-300 rounded-full py-2 px-4 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 focus:outline-none bg-white"
+                className="flex-1 text-sm border border-neutral-300 dark:border-neutral-600 rounded-full py-2 px-4 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 focus:outline-none bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
               />
               <button
                 type="submit"
@@ -420,7 +420,7 @@ const PostComments = ({
             />
             <div className="flex-1 flex flex-col gap-2">
               <div
-                className={`flex items-center rounded-full border bg-white transition-all ${
+                className={`flex items-center rounded-full border bg-white dark:bg-neutral-800 dark:border-neutral-600 transition-all ${
                   inputFocused
                     ? "border-primary-500 ring-2 ring-primary-100"
                     : "border-neutral-300"

@@ -7,6 +7,8 @@ import MainLinks from "./MainLinks";
 import { useLogout } from "../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../context/NotificationContext";
+import ThemeToggle from "../components/ThemeToggle";
+import { NAV_BAR } from "../theme/classes";
 
 const NavbarMP = ({ onSearch }) => {
   const [nav, setNav] = useState(false);
@@ -55,7 +57,7 @@ const NavbarMP = ({ onSearch }) => {
     <header className="w-full">
       <div className="flex flex-col">
         {/* Calculate top position based on header height: ~2.5rem (40px) on mobile, ~3rem (48px) on larger screens */}
-        <nav className="fixed z-20 w-full h-[60px] sm:h-[70px] md:h-[80px] bg-white/95 backdrop-blur-md border-b-2 border-primary-100 shadow-lg top-[2.5rem] sm:top-[2.75rem] md:top-[3rem]">
+        <nav className={`fixed z-20 w-full h-[60px] sm:h-[70px] md:h-[80px] ${NAV_BAR} top-[2.5rem] sm:top-[2.75rem] md:top-[3rem]`}>
           <div className="w-full max-w-7xl mx-auto h-full px-4 sm:px-6 md:px-8">
             <div className="h-full flex items-center justify-between">
               {/* Left: Logo */}
@@ -69,7 +71,7 @@ const NavbarMP = ({ onSearch }) => {
                     alt="Sturum Logo" 
                     className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" 
                   />
-                  <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-neutral-800 sm:block">
+                  <h1 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl text-neutral-800 dark:text-neutral-100 sm:block">
                     STURUM
                   </h1>
                 </Link>
@@ -83,9 +85,11 @@ const NavbarMP = ({ onSearch }) => {
               {/* Right: Actions */}
               <div className="flex items-center justify-end gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
                 {/* Search Button */}
+                <ThemeToggle variant="icon" />
+
                 <button
                   onClick={() => setSearchVisible(!searchVisible)}
-                  className="p-2 text-neutral-700 hover:text-primary-600 transition-colors"
+                  className="p-2 text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   aria-label="Search"
                 >
                   <FaSearch className="text-lg sm:text-xl" />
@@ -102,7 +106,7 @@ const NavbarMP = ({ onSearch }) => {
                 {/* Mobile Menu Toggle */}
                 <button
                   onClick={handleClick}
-                  className="md:hidden p-2 text-neutral-800 hover:text-primary-600 transition-colors"
+                  className="md:hidden p-2 text-neutral-800 dark:text-neutral-100 hover:text-primary-600 transition-colors"
                   aria-label="Toggle menu"
                 >
                   {nav ? (
@@ -125,23 +129,27 @@ const NavbarMP = ({ onSearch }) => {
             {/* Close button */}
             <button
               onClick={handleClick}
-              className="absolute top-4 right-4 z-[60] p-3 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all"
+              className="absolute top-4 right-4 z-[60] p-3 bg-white/90 dark:bg-neutral-800 hover:bg-white dark:hover:bg-neutral-700 rounded-full shadow-lg transition-all"
               aria-label="Close menu"
             >
-              <FaTimes className="text-2xl text-neutral-800" />
+              <FaTimes className="text-2xl text-neutral-800 dark:text-neutral-100" />
             </button>
 
             {/* Menu content */}
             <div
-              className="w-full h-screen bg-white/98 backdrop-blur-md flex items-center justify-center"
+              className="w-full h-screen bg-white dark:bg-neutral-900 flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <ul className="w-full flex flex-col items-center justify-center font-semibold space-y-6 sm:space-y-8 px-4">
+              <div className="flex flex-col items-center w-full px-4">
+              <div className="mb-8 md:hidden">
+                <ThemeToggle />
+              </div>
+              <ul className="w-full flex flex-col items-center justify-center font-semibold space-y-6 sm:space-y-8">
               <li>
                 <Link
                   onClick={handleClick}
                   to="/home"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Home
                 </Link>
@@ -150,7 +158,7 @@ const NavbarMP = ({ onSearch }) => {
                 <Link
                   onClick={handleClick}
                   to="/materials"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Materials
                 </Link>
@@ -159,7 +167,7 @@ const NavbarMP = ({ onSearch }) => {
                 <Link
                   onClick={handleClick}
                   to="/messaging"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Messaging
                 </Link>
@@ -168,7 +176,7 @@ const NavbarMP = ({ onSearch }) => {
                 <Link
                   onClick={handleClick}
                   to="/mynetwork"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Network
                 </Link>
@@ -177,7 +185,7 @@ const NavbarMP = ({ onSearch }) => {
                 <Link
                   onClick={handleClick}
                   to="/discover"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Discover
                 </Link>
@@ -186,7 +194,7 @@ const NavbarMP = ({ onSearch }) => {
                 <Link
                   onClick={handleClick}
                   to="/settings"
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-400 hover:text-primary-600 transition-colors duration-300"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-300"
                 >
                   Settings
                 </Link>
@@ -215,19 +223,20 @@ const NavbarMP = ({ onSearch }) => {
                     handleLogout();
                     handleClick();
                   }}
-                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 hover:text-red-500 transition-colors duration-300 bg-red-50 hover:bg-red-100 px-6 py-2 rounded-lg"
+                  className="text-xl sm:text-2xl md:text-3xl text-neutral-700 dark:text-neutral-200 hover:text-red-500 transition-colors duration-300 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/40 px-6 py-2 rounded-lg"
                 >
                   Log out
                 </button>
               </li>
             </ul>
+              </div>
             </div>
           </div>
         )}
 
         {/* Search Bar */}
         {searchVisible && (
-          <div className="fixed z-20 w-full bg-white border-b-2 border-primary-100 shadow-lg top-[calc(2.5rem+60px)] sm:top-[calc(2.75rem+70px)] md:top-[calc(3rem+80px)]">
+          <div className="fixed z-20 w-full bg-white dark:bg-neutral-900 border-b-2 border-primary-100 dark:border-neutral-700 shadow-lg top-[calc(2.5rem+60px)] sm:top-[calc(2.75rem+70px)] md:top-[calc(3rem+80px)]">
             <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
               <form
                 onSubmit={handleSearchSubmit}
@@ -238,7 +247,7 @@ const NavbarMP = ({ onSearch }) => {
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search posts, materials, users..."
-                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border-2 border-neutral-300 rounded-l-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all"
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border-2 border-neutral-300 dark:border-neutral-600 rounded-l-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900 outline-none transition-all"
                   autoFocus
                 />
                 <button 
