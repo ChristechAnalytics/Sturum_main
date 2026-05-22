@@ -1,5 +1,10 @@
 const express = require("express");
-const { signupUser, loginUser } = require("../controllers/userController");
+const {
+  signupUser,
+  loginUser,
+  verifyEmail,
+  resendVerificationEmail,
+} = require("../controllers/userController");
 const { protect } = require("../middleware/requireAuth");
 const { upload, handleUploadError } = require("../utils/upload");
 const User = require("../models/User");
@@ -11,6 +16,12 @@ router.post("/signup", signupUser);
 
 // Login route
 router.post("/login", loginUser);
+
+// Email verification (public)
+router.get("/verify-email", verifyEmail);
+
+// Resend verification email
+router.post("/resend-verification", protect, resendVerificationEmail);
 
 // Get current user's profile
 router.get("/me", protect, async (req, res) => {

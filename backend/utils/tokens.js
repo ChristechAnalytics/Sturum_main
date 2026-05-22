@@ -15,6 +15,7 @@ const buildAuthPayload = (user) => ({
   email: user.email,
   name: user.name,
   department: user.department,
+  isEmailVerified: user.isEmailVerified ?? true,
   token: createAccessToken(user._id),
   refreshToken: createRefreshToken(user._id),
 });

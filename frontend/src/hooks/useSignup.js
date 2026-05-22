@@ -6,7 +6,7 @@ import API_URL from "../config";
 export const useSignup = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
   const { dispatch } = useAuthContext();
   const navigate = useNavigate();
 
@@ -51,10 +51,14 @@ export const useSignup = () => {
       dispatch({ type: "LOGIN", payload: json });
       setIsLoading(false);
 
-      console.log("User was successfully created");
-      setSuccessMessage(true);
+      setSuccessMessage(
+        json.message ||
+          (json.emailSent
+            ? "Account created. Check your email to verify your address."
+            : "Account created.")
+      );
 
-      navigate("/home");
+      setTimeout(() => navigate("/home"), 3500);
     } catch (error) {
       setIsLoading(false);
       console.error("Signup error:", error);

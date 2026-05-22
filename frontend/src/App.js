@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
 import Materials from "./pages/Materials";
 import Messaging from "./pages/Messaging";
@@ -27,6 +28,7 @@ const AppRoutes = () => {
           <Route exact path="/" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route
             path="/home"
             element={

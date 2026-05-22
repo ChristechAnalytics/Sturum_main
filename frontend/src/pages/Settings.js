@@ -11,6 +11,10 @@ const Settings = () => {
   const { user } = useAuthContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(
+    () => user?.isEmailVerified ?? true
+  );
   const [preferences, setPreferences] = useState({
     friendRequests: true,
     messages: true,
@@ -39,6 +43,7 @@ const Settings = () => {
       }
 
       const userData = await response.json();
+      setIsEmailVerified(userData.isEmailVerified !== false);
       if (userData.notificationPreferences) {
         setPreferences(userData.notificationPreferences);
       }
@@ -55,6 +60,27 @@ const Settings = () => {
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+  const handleResendVerification = async () => {
+    if (!user?.token) return;
+    setResendingEmail(true);
+    try {
+      const response = await fetch(`${API_URL}/api/users/resend-verification`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || "Could not send verification email");
+        return;
+      }
+      toast.success(data.message || "Verification email sent");
+    } catch {
+      toast.error("Could not reach the server");
+    } finally {
+      setResendingEmail(false);
+    }
   };
 
   const handleSave = async () => {
@@ -151,6 +177,23 @@ const Settings = () => {
         <h1 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
           Settings
         </h1>
+
+        {!isEmailVerified && (
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 mb-6">
+            <h2 className="text-lg font-bold text-amber-900 mb-2">Verify your email</h2>
+            <p className="text-sm text-amber-800 mb-4">
+              We sent a link to <strong>{user?.email}</strong>. Open it to confirm your account.
+            </p>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resendingEmail}
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg"
+            >
+              {resendingEmail ? "Sending…" : "Resend verification email"}
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-xl shadow-lg border-2 border-neutral-200 p-6">
           <h2 className="text-2xl font-bold text-neutral-800 mb-4 flex items-center gap-2">

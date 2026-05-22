@@ -41,6 +41,9 @@ const userSchema = new Schema(
       likes: { type: Boolean, default: true },
       newPosts: { type: Boolean, default: true },
     },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String, select: false },
+    emailVerificationExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );
@@ -60,14 +63,16 @@ userSchema.statics.signup = async function (department, name, email, password, c
     throw Error("Academic level is required");
   }
   
-  if (!validator.isEmail(email)) {
-    throw Error("Email is not valid");
+  const normalizedEmail = validator.normalizeEmail(email?.trim()) || email?.trim()?.toLowerCase();
+  if (!normalizedEmail || !validator.isEmail(normalizedEmail)) {
+    throw Error("Please enter a valid email address");
   }
+  email = normalizedEmail;
   if (!validator.isStrongPassword(password)) {
     throw Error("Password not strong enough");
   }
 
-  const exists = await this.findOne({ email });
+  const exists = await this.findOne({ email: normalizedEmail });
 
   if (exists) {
     throw Error("Email already in use");
@@ -112,7 +117,10 @@ userSchema.statics.login = async function (email, password) {
     throw Error("All fields must be filled");
   }
 
-  const user = await this.findOne({ email });
+  const normalizedEmail =
+    validator.normalizeEmail(email?.trim()) || email?.trim()?.toLowerCase();
+
+  const user = await this.findOne({ email: normalizedEmail });
 
   if (!user) {
     throw Error("Incorrect email");
