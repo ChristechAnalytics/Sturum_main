@@ -18,6 +18,7 @@ const { socketAuth } = require("./middleware/socketAuth");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const { connectDatabase } = require("./config/database");
 const { warnIfMisconfiguredForProduction } = require("./utils/urls");
+const { verifySmtpConnection } = require("./utils/email");
 const {
   buildAllowedOrigins,
   isOriginAllowed,
@@ -106,8 +107,9 @@ io.on("connection", (socket) => {
 });
 
 connectDatabase()
-  .then(() => {
+  .then(async () => {
     warnIfMisconfiguredForProduction();
+    await verifySmtpConnection();
     const PORT = process.env.PORT || 4000;
     server.listen(PORT, () => {
       console.log(`Server is listening on port ${PORT}`);

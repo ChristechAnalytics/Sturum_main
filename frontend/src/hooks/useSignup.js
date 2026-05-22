@@ -46,12 +46,13 @@ export const useSignup = () => {
       localStorage.setItem("user", JSON.stringify(json));
       dispatch({ type: "LOGIN", payload: json });
 
-      setSuccessMessage(
-        json.message ||
-          (json.emailSent
-            ? "Account created. Check your email to verify your address."
-            : "Account created.")
-      );
+      const parts = [json.message || "Account created."];
+      if (json.emailSent) {
+        parts.push("If you do not see it in a few minutes, check spam or junk.");
+      } else if (json.emailWarning) {
+        parts.push(json.emailWarning);
+      }
+      setSuccessMessage(parts.join(" "));
 
       setTimeout(() => navigate("/home"), 3500);
     } catch (err) {

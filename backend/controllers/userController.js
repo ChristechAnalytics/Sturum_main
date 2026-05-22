@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const { buildAuthPayload } = require("../utils/tokens");
-const { sendSignupEmail, isEmailConfigured } = require("../utils/email");
+const {
+  sendSignupEmailWithTimeout,
+  isEmailConfigured,
+} = require("../utils/email");
 const {
   createVerificationToken,
   hashVerificationToken,
@@ -17,11 +20,14 @@ const prepareVerificationToken = async (user) => {
   return buildEmailVerificationUrl(rawToken);
 };
 
-/** Send after HTTP response so signup is not blocked by SMTP (especially on Render). */
-const queueVerificationEmail = (user, verifyUrl) => {
-  if (!isEmailConfigured()) return;
-  sendSignupEmail({ to: user.email, name: user.name, verifyUrl }).catch((err) => {
-    console.error("Signup email failed:", err);
+const trySendVerificationEmail = async (user, verifyUrl) => {
+  if (!isEmailConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" };
+  }
+  return sendSignupEmailWithTimeout({
+    to: user.email,
+    name: user.name,
+    verifyUrl,
   });
 };
 
@@ -39,21 +45,31 @@ const signupUser = async (req, res) => {
     );
 
     let emailSent = false;
+    let emailWarning = null;
+
     try {
       const verifyUrl = await prepareVerificationToken(user);
-      queueVerificationEmail(user, verifyUrl);
-      emailSent = isEmailConfigured();
+      const emailResult = await trySendVerificationEmail(user, verifyUrl);
+      emailSent = emailResult.sent === true;
+
+      if (!emailSent) {
+        emailWarning =
+          "We could not send the verification email. Open Settings → resend, or check that SMTP is set on the server.";
+        console.error("[signup] Email not sent:", emailResult.reason, emailResult.error);
+      }
     } catch (emailErr) {
       console.error("Verification token setup failed:", emailErr);
+      emailWarning = "Account created, but verification email setup failed.";
     }
 
     const payload = buildAuthPayload(user);
     res.status(200).json({
       ...payload,
       emailSent,
+      emailWarning,
       message: emailSent
-        ? "Account created. Check your email to verify your address."
-        : "Account created. You can resend the verification email from Settings.",
+        ? "Account created. Check your inbox and spam folder for the verification email."
+        : "Account created. Use Settings to resend the verification email.",
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -136,9 +152,18 @@ const resendVerificationEmail = async (req, res) => {
     }
 
     const verifyUrl = await prepareVerificationToken(user);
-    queueVerificationEmail(user, verifyUrl);
+    const emailResult = await trySendVerificationEmail(user, verifyUrl);
 
-    res.status(200).json({ message: "Verification email sent. Check your inbox." });
+    if (!emailResult.sent) {
+      return res.status(503).json({
+        error:
+          "Could not send email. Check SMTP settings on the server (Gmail App Password) and try again.",
+      });
+    }
+
+    res.status(200).json({
+      message: "Verification email sent. Check your inbox and spam folder.",
+    });
   } catch (error) {
     console.error("resendVerificationEmail:", error);
     res.status(500).json({ error: "Could not send verification email" });

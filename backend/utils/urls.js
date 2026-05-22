@@ -6,16 +6,22 @@ const getFrontendUrl = () =>
 const getPublicApiUrl = () =>
   normalizeUrl(process.env.API_PUBLIC_URL || process.env.BACKEND_URL);
 
-/**
- * Email links should hit the public API (Render), which verifies then redirects
- * to the Vercel app. Avoids localhost links when FRONTEND_URL was unset locally.
- */
+const isLocalhostUrl = (url) =>
+  Boolean(url && /localhost|127\.0\.0\.1/i.test(url));
+
+/** Production: email → API redirect → Vercel. Local dev: email → React app on :3000. */
+const shouldUseBackendRedirect = () => {
+  const apiBase = getPublicApiUrl();
+  if (!apiBase) return false;
+  if (isLocalhostUrl(apiBase)) return false;
+  return true;
+};
+
 const buildEmailVerificationUrl = (rawToken) => {
   const encoded = encodeURIComponent(rawToken);
-  const apiBase = getPublicApiUrl();
 
-  if (apiBase) {
-    return `${apiBase}/api/users/verify-email/redirect?token=${encoded}`;
+  if (shouldUseBackendRedirect()) {
+    return `${getPublicApiUrl()}/api/users/verify-email/redirect?token=${encoded}`;
   }
 
   return `${getFrontendUrl()}/verify-email?token=${encoded}`;
