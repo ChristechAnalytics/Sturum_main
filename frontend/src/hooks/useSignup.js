@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useAuthContext } from "./useAuthContext";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../config";
+import { apiFetch, parseJsonResponse } from "../utils/apiFetch";
 
 export const useSignup = () => {
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
   const { dispatch } = useAuthContext();
   const navigate = useNavigate();
@@ -13,8 +14,8 @@ export const useSignup = () => {
   const signup = async (department, name, email, password, contact, academicLevel) => {
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
-    // Validate required fields before sending
     if (!contact || !academicLevel) {
       setIsLoading(false);
       setError("Contact number and academic level are required");
@@ -22,34 +23,28 @@ export const useSignup = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/users/signup`, {
+      const response = await apiFetch(`${API_URL}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          department, 
-          name, 
-          email, 
-          password, 
-          contact: contact.trim(), 
-          academicLevel: academicLevel.trim() 
+        body: JSON.stringify({
+          department,
+          name,
+          email,
+          password,
+          contact: contact.trim(),
+          academicLevel: academicLevel.trim(),
         }),
       });
 
+      const json = await parseJsonResponse(response);
+
       if (!response.ok) {
-        const json = await response.json();
-        setIsLoading(false);
         setError(json.error || json.message || "Failed to sign up. Please try again.");
         return;
       }
 
-      const json = await response.json();
-
-      // save user to local storage
       localStorage.setItem("user", JSON.stringify(json));
-
-      // update AuthContext
       dispatch({ type: "LOGIN", payload: json });
-      setIsLoading(false);
 
       setSuccessMessage(
         json.message ||
@@ -59,15 +54,18 @@ export const useSignup = () => {
       );
 
       setTimeout(() => navigate("/home"), 3500);
-    } catch (error) {
-      setIsLoading(false);
-      console.error("Signup error:", error);
-      
-      if (error.message === "Failed to fetch" || error.name === "TypeError") {
-        setError("Cannot connect to server. Please check your connection and try again.");
+    } catch (err) {
+      console.error("Signup error:", err);
+
+      if (err.message === "Failed to fetch" || err.name === "TypeError") {
+        setError(
+          "Cannot reach the server. Check your connection, or wait if the backend is waking up (free hosting can take up to a minute)."
+        );
       } else {
-        setError(error.message || "An unexpected error occurred. Please try again.");
+        setError(err.message || "An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 

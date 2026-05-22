@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const { buildAuthPayload } = require("../utils/tokens");
-const { sendSignupEmail } = require("../utils/email");
+const { sendSignupEmail, isEmailConfigured } = require("../utils/email");
 const {
   createVerificationToken,
   hashVerificationToken,
@@ -9,17 +9,19 @@ const {
 const { buildEmailVerificationUrl, buildFrontendVerifyResultUrl } = require("../utils/urls");
 const { verifyEmailToken } = require("../utils/verifyEmailToken");
 
-const attachVerificationAndSendEmail = async (user) => {
+const prepareVerificationToken = async (user) => {
   const rawToken = createVerificationToken();
   user.emailVerificationToken = hashVerificationToken(rawToken);
   user.emailVerificationExpires = getVerificationExpiry();
   await user.save();
+  return buildEmailVerificationUrl(rawToken);
+};
 
-  const verifyUrl = buildEmailVerificationUrl(rawToken);
-  return sendSignupEmail({
-    to: user.email,
-    name: user.name,
-    verifyUrl,
+/** Send after HTTP response so signup is not blocked by SMTP (especially on Render). */
+const queueVerificationEmail = (user, verifyUrl) => {
+  if (!isEmailConfigured()) return;
+  sendSignupEmail({ to: user.email, name: user.name, verifyUrl }).catch((err) => {
+    console.error("Signup email failed:", err);
   });
 };
 
@@ -36,21 +38,22 @@ const signupUser = async (req, res) => {
       academicLevel
     );
 
-    let emailResult = { sent: false };
+    let emailSent = false;
     try {
-      emailResult = await attachVerificationAndSendEmail(user);
+      const verifyUrl = await prepareVerificationToken(user);
+      queueVerificationEmail(user, verifyUrl);
+      emailSent = isEmailConfigured();
     } catch (emailErr) {
-      console.error("Signup email failed:", emailErr);
-      emailResult = { sent: false, reason: "send_failed" };
+      console.error("Verification token setup failed:", emailErr);
     }
 
     const payload = buildAuthPayload(user);
     res.status(200).json({
       ...payload,
-      emailSent: emailResult.sent,
-      message: emailResult.sent
+      emailSent,
+      message: emailSent
         ? "Account created. Check your email to verify your address."
-        : "Account created. Email could not be sent — ask an admin to configure SMTP, or use resend from Settings later.",
+        : "Account created. You can resend the verification email from Settings.",
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -125,14 +128,15 @@ const resendVerificationEmail = async (req, res) => {
       return res.status(400).json({ error: "Your email is already verified" });
     }
 
-    const emailResult = await attachVerificationAndSendEmail(user);
-
-    if (!emailResult.sent) {
+    if (!isEmailConfigured()) {
       return res.status(503).json({
         error:
           "Email service is not configured. Set SMTP variables on the server.",
       });
     }
+
+    const verifyUrl = await prepareVerificationToken(user);
+    queueVerificationEmail(user, verifyUrl);
 
     res.status(200).json({ message: "Verification email sent. Check your inbox." });
   } catch (error) {

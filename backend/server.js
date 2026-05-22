@@ -18,59 +18,43 @@ const { socketAuth } = require("./middleware/socketAuth");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const { connectDatabase } = require("./config/database");
 const { warnIfMisconfiguredForProduction } = require("./utils/urls");
+const {
+  buildAllowedOrigins,
+  isOriginAllowed,
+  createCorsOptions,
+  normalizeUrl,
+} = require("./config/cors");
 
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-const normalizeUrl = (url) => {
-  if (!url) return url;
-  return url.replace(/\/+$/, "");
-};
-
-const frontendUrl = normalizeUrl(process.env.FRONTEND_URL) || "http://localhost:3000";
+const allowedOrigins = buildAllowedOrigins();
 
 const app = express();
 const server = http.createServer(app);
 
+// Required on Render/Heroku/Vercel — avoids rate-limit 500s (X-Forwarded-For)
+app.set("trust proxy", 1);
+
 const io = new Server(server, {
   cors: {
-    origin: frontendUrl,
+    origin(origin, callback) {
+      if (!origin || isOriginAllowed(origin, allowedOrigins)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST"],
   },
 });
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(express.json({ limit: "1mb" }));
-
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:3000",
-  "https://localhost:3000",
-]
-  .filter(Boolean)
-  .map(normalizeUrl);
-
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
-      const normalizedOrigin = normalizeUrl(origin);
-      if (
-        allowedOrigins.length === 0 ||
-        allowedOrigins.includes(normalizedOrigin)
-      ) {
-        callback(null, normalizedOrigin);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors(createCorsOptions(allowedOrigins)));
 
 if (process.env.NODE_ENV !== "production") {
   app.use((req, res, next) => {

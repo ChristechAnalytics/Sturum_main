@@ -293,8 +293,13 @@ const Signup = () => {
               type="submit"
               className="bg-primary-600 hover:bg-primary-700 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg mx-0 w-full mt-2 cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
-              {isLoading ? "Creating Account..." : "Sign up"}
+              {isLoading ? "Creating account…" : "Sign up"}
             </button>
+            {isLoading && (
+              <p className="text-xs text-neutral-500 text-center mt-2">
+                First request after idle may take up to a minute on free hosting.
+              </p>
+            )}
 
             {error && (
               <div className="text-red-600 border-2 border-red-300 p-3 bg-red-50 mt-5 rounded-lg text-sm">

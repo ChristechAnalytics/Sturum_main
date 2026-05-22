@@ -28,11 +28,15 @@ router.get("/", (req, res) => {
 });
 
 router.get("/all", (_req, res) => {
-  res.json({
-    total: DEPARTMENTS.length,
-    categories: getCategories(),
-    departments: DEPARTMENTS,
-  });
+  try {
+    res.json({
+      total: DEPARTMENTS.length,
+      categories: getCategories(),
+      departments: DEPARTMENTS,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;

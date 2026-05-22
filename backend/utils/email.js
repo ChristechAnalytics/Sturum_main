@@ -22,8 +22,14 @@ const getTransporter = () => {
   };
 
   // Nodemailer's Gmail preset handles TLS/ports correctly (App Password required).
+  const timeouts = {
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
+  };
+
   if (isGmailSmtp()) {
-    return nodemailer.createTransport({ service: "gmail", auth });
+    return nodemailer.createTransport({ service: "gmail", auth, ...timeouts });
   }
 
   const port = Number(process.env.SMTP_PORT) || 587;
@@ -34,6 +40,7 @@ const getTransporter = () => {
     port,
     secure,
     auth,
+    ...timeouts,
     ...(port === 587 && !secure ? { requireTLS: true } : {}),
   });
 };
