@@ -5,6 +5,7 @@ import Header from "../DEPT-components/Header";
 import NavbarMP from "../DEPT-components/NavbarMP";
 import API_URL from "../config";
 import UserAvatar from "../components/UserAvatar";
+import { formatContact } from "../utils/contact";
 
 const Profile = () => {
   const { id } = useParams();
@@ -38,7 +39,7 @@ const Profile = () => {
 
         const data = await response.json();
         setUserInfo(data);
-        setContact(data.contact || "");
+        setContact(formatContact(data.contact));
         // Convert 600 to "graduate" for display, otherwise use the number as string
         setAcademicLevel(data.academicLevel === 600 ? "graduate" : (data.academicLevel?.toString() || ""));
         setProfileImage(data.profileImage || null);
@@ -252,7 +253,7 @@ const Profile = () => {
                 {userInfo.contact && (
                   <p className="text-sm sm:text-base">
                     <span className="font-semibold text-neutral-700">Contact:</span>{" "}
-                    {userInfo.contact}
+                    {formatContact(userInfo.contact)}
                   </p>
                 )}
                 {userInfo.academicLevel && (
@@ -279,7 +280,7 @@ const Profile = () => {
                       type="tel"
                       id="contact"
                       value={contact}
-                      onChange={(e) => setContact(e.target.value)}
+                      onChange={(e) => setContact(e.target.value.replace(/\D/g, ""))}
                       className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
                       placeholder="Enter your contact number"
                     />

@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa";
 import API_URL from "../config";
 import { getPasswordHint, passwordsMatch } from "../utils/validation";
+import { formatContact } from "../utils/contact";
 
 const inputClass =
   "w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all";
@@ -105,7 +106,7 @@ const Settings = () => {
 
       const data = await response.json();
       setProfile(data);
-      setContact(data.contact?.toString() || "");
+      setContact(formatContact(data.contact));
       setAcademicLevel(
         data.academicLevel === 600 ? "graduate" : data.academicLevel?.toString() || ""
       );

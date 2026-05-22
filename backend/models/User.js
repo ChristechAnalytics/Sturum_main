@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const { isValidDepartment, normalizeDepartment } = require("../constants/departments");
+const { normalizeContact } = require("../utils/contact");
 
 const Schema = mongoose.Schema;
 
@@ -28,7 +29,14 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    contact: { type: Number, required: true },
+    contact: {
+      type: String,
+      required: true,
+      validate: {
+        validator: (v) => /^\d{7,15}$/.test(String(v)),
+        message: "Contact must be 7–15 digits",
+      },
+    },
     academicLevel: { type: Number, required: true },
     profileImage: { type: String },
     friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -81,19 +89,14 @@ userSchema.statics.signup = async function (department, name, email, password, c
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
 
-  // Convert to numbers, ensuring they're valid
-  const contactNumber = Number(contact);
-  
+  const contactDigits = normalizeContact(contact);
+
   // Handle "graduate" string by converting to 600
   let academicLevelNumber;
   if (academicLevel === "graduate" || academicLevel === "Graduate") {
     academicLevelNumber = 600;
   } else {
     academicLevelNumber = Number(academicLevel);
-  }
-  
-  if (isNaN(contactNumber) || contactNumber <= 0) {
-    throw Error("Contact number must be a valid positive number");
   }
   if (isNaN(academicLevelNumber) || academicLevelNumber <= 0) {
     throw Error("Academic level must be a valid number");
@@ -104,7 +107,7 @@ userSchema.statics.signup = async function (department, name, email, password, c
     name,
     email,
     password: hash,
-    contact: contactNumber,
+    contact: contactDigits,
     academicLevel: academicLevelNumber,
   });
 

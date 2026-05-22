@@ -10,6 +10,7 @@ const {
 const { protect } = require("../middleware/requireAuth");
 const { upload, handleUploadError } = require("../utils/upload");
 const User = require("../models/User");
+const { normalizeContact } = require("../utils/contact");
 
 const router = express.Router();
 
@@ -203,9 +204,10 @@ router.put("/me", protect, upload.single("profileImage"), handleUploadError, asy
 
     // Update user fields with proper type conversion
     if (contact) {
-      user.contact = Number(contact);
-      if (isNaN(user.contact)) {
-        return res.status(400).json({ msg: "Contact must be a valid number" });
+      try {
+        user.contact = normalizeContact(contact);
+      } catch (err) {
+        return res.status(400).json({ msg: err.message });
       }
     }
     
