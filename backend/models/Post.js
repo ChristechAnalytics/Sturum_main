@@ -20,6 +20,10 @@ const PostSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
   },
+  imageUrls: {
+    type: [String],
+    default: [],
+  },
   department: {
     type: String,
     required: true,

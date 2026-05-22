@@ -33,6 +33,7 @@ const connectDatabase = async () => {
 
   const dbName = mongoose.connection.db?.databaseName;
   console.log(`MongoDB connected (database: ${dbName})`);
+  console.log("[fileStorage] Uploads persist in MongoDB GridFS (survives Render redeploys)");
 
   return mongoose.connection;
 };

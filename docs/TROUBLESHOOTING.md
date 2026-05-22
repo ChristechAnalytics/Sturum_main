@@ -100,6 +100,22 @@ Should return an error (needs POST), but NOT a connection error.
 - [ ] Check browser console for actual error messages
 - [ ] Check Network tab to see what URL is being called
 
+## Profile pictures or post images disappear after a while
+
+**Cause:** On Render (and similar hosts), files saved to the server’s local `uploads/` folder are **deleted** when the service restarts, redeploys, or sleeps. MongoDB still had the path, but the file was gone.
+
+**Fix (in codebase):** New uploads are stored in **MongoDB GridFS** (same Atlas database), so they persist across redeploys.
+
+**What you need to do:**
+
+1. **Redeploy the backend** with the latest code.
+2. **Re-upload** profile photos and post images that disappeared (old `/uploads/...` paths cannot be recovered from disk).
+3. Confirm Render logs show: `[fileStorage] Uploads persist in MongoDB GridFS`
+
+New uploads will be stored as `gridfs://...` in the database and served via `/api/files/<id>`.
+
+---
+
 ## Still Not Working?
 
 1. **Check browser console** - Look for the exact error message

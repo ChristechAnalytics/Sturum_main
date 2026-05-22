@@ -1,10 +1,9 @@
 const express = require("express");
-const path = require("path");
-const fs = require("fs");
 const router = express.Router();
 const Material = require("../models/Material");
 const { protect } = require("../middleware/requireAuth");
-const { upload, handleUploadError, UPLOAD_DIR } = require("../utils/upload");
+const { upload, handleUploadError } = require("../utils/upload");
+const { persistUpload, deleteFileRef } = require("../utils/fileStorage");
 
 router.get("/", protect, async (req, res) => {
   try {
@@ -19,9 +18,15 @@ router.get("/", protect, async (req, res) => {
   }
 });
 
-router.post("/", protect, upload.single("file"), handleUploadError, async (req, res) => {
+router.post(
+  "/",
+  protect,
+  upload.single("file"),
+  handleUploadError,
+  persistUpload,
+  async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.fileRef) {
       return res.status(400).json({ error: "File is required" });
     }
 
@@ -31,7 +36,7 @@ router.post("/", protect, upload.single("file"), handleUploadError, async (req, 
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = req.fileRef;
     const newMaterial = new Material({
       title,
       category,
@@ -47,7 +52,8 @@ router.post("/", protect, upload.single("file"), handleUploadError, async (req, 
     console.error("Error uploading material:", error);
     res.status(500).json({ error: error.message });
   }
-});
+  }
+);
 
 router.delete("/:id", protect, async (req, res) => {
   try {
@@ -62,12 +68,7 @@ router.delete("/:id", protect, async (req, res) => {
       return res.status(403).json({ error: "Only the author can delete this material" });
     }
 
-    const filename = path.basename(material.fileUrl);
-    const filePath = path.join(UPLOAD_DIR, filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-
+    await deleteFileRef(material.fileUrl);
     await Material.findByIdAndDelete(req.params.id);
     res.json({ message: "Material deleted" });
   } catch (error) {

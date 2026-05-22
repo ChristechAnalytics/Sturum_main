@@ -2,6 +2,8 @@
 
 A full-stack social networking platform designed for students in marine-related fields, combining blog and forum functionality.
 
+**Product vision:** [GOALS.md](./GOALS.md) · **Launch copy:** [LAUNCH_POST.md](./LAUNCH_POST.md)
+
 ## Features
 
 - 🔐 User Authentication (Signup/Login)

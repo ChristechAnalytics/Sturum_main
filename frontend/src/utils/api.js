@@ -2,8 +2,10 @@ import API_URL from "../config";
 
 export const getFileUrl = (filePath, token) => {
   if (!filePath || !token) return "";
-  const filename = filePath.split("/").pop();
-  return `${API_URL}/api/files/${filename}?token=${encodeURIComponent(token)}`;
+  const key = filePath.startsWith("gridfs://")
+    ? filePath.slice("gridfs://".length)
+    : filePath.split("/").pop();
+  return `${API_URL}/api/files/${key}?token=${encodeURIComponent(token)}`;
 };
 
 export const authFetch = async (url, options = {}, token) => {

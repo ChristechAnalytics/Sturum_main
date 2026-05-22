@@ -6,8 +6,8 @@ import { useAuthContext } from "../hooks/useAuthContext";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 import API_URL from "../config";
-import { getFileUrl } from "../utils/api";
-import { getReshareTarget } from "../utils/posts";
+import { getReshareTarget, getPostImageUrls } from "../utils/posts";
+import PostImages from "../components/PostImages";
 import UserAvatar from "../components/UserAvatar";
 import PostComments from "./PostComments";
 import EmbeddedPost from "./EmbeddedPost";
@@ -16,6 +16,7 @@ import ReshareModal from "./ReshareModal";
 const PostCard = ({
   text,
   image,
+  imageUrls,
   createdAt,
   _id,
   author,
@@ -60,7 +61,11 @@ const PostCard = ({
       : null);
 
   const formattedDate = format(new Date(createdAt), "MMMM d, h:mm a");
-  const imageSrc = !isReshare && image ? getFileUrl(image, user?.token) : "";
+  const postImageUrls = !isReshare
+    ? imageUrls?.length
+      ? imageUrls
+      : getPostImageUrls({ imageUrl: image, imageUrls })
+    : [];
 
   const fetchComments = async () => {
     if (!user) return;
@@ -313,13 +318,9 @@ const PostCard = ({
         )}
       </div>
 
-      {!isReshare && imageSrc && (
+      {!isReshare && postImageUrls.length > 0 && (
         <div className="px-4 sm:px-6 pb-3">
-          <img
-            className="w-full rounded-lg object-cover max-h-[500px]"
-            src={imageSrc}
-            alt="Post content"
-          />
+          <PostImages imageUrls={postImageUrls} token={user?.token} />
         </div>
       )}
 

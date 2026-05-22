@@ -25,14 +25,6 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-  filename: (_req, file, cb) => {
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, `${Date.now()}-${safeName}`);
-  },
-});
-
 const fileFilter = (_req, file, cb) => {
   if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
     cb(null, true);
@@ -41,8 +33,9 @@ const fileFilter = (_req, file, cb) => {
   }
 };
 
+/** Memory storage — files are saved to MongoDB GridFS via persistUpload middleware */
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter,
 });

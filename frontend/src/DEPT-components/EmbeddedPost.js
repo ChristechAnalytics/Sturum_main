@@ -2,13 +2,14 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import UserAvatar from "../components/UserAvatar";
-import { getFileUrl } from "../utils/api";
+import PostImages from "../components/PostImages";
+import { getPostImageUrls } from "../utils/posts";
 
 const EmbeddedPost = ({ post, token }) => {
   if (!post) return null;
 
   const author = post.authorId;
-  const imageSrc = post.imageUrl ? getFileUrl(post.imageUrl, token) : "";
+  const imageUrls = getPostImageUrls(post);
 
   return (
     <div className="mt-3 border border-neutral-200 rounded-lg bg-neutral-50 overflow-hidden">
@@ -43,12 +44,10 @@ const EmbeddedPost = ({ post, token }) => {
             {post.text}
           </p>
         )}
-        {imageSrc && (
-          <img
-            src={imageSrc}
-            alt=""
-            className="mt-2 w-full rounded-md object-cover max-h-64"
-          />
+        {imageUrls.length > 0 && (
+          <div className="mt-2">
+            <PostImages imageUrls={imageUrls} token={token} maxHeight="256px" />
+          </div>
         )}
         <p className="text-[11px] text-neutral-400 mt-2">
           {format(new Date(post.createdAt), "MMM d, yyyy")}

@@ -1,5 +1,11 @@
 const Post = require("../models/Post");
 const { emitToDepartment } = require("../utils/socketEmit");
+const { deleteFileRef } = require("../utils/fileStorage");
+const {
+  MAX_POST_IMAGES,
+  getPostImageUrls,
+  deleteAllPostImages,
+} = require("../utils/postImages");
 
 const authorFields = "name profileImage department academicLevel";
 
@@ -11,9 +17,14 @@ const populatePost = (query) =>
       populate: { path: "authorId", select: authorFields },
     });
 
+const applyImageRefs = (post, fileRefs) => {
+  const imageUrls = (fileRefs || []).slice(0, MAX_POST_IMAGES);
+  post.imageUrls = imageUrls;
+  post.imageUrl = imageUrls[0] || undefined;
+};
+
 const createPost = async (req, res) => {
   const { text } = req.body;
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   try {
     if (!text || !text.trim()) {
@@ -24,8 +35,9 @@ const createPost = async (req, res) => {
       text: text.trim(),
       department: req.user.department,
       authorId: req.user._id,
-      imageUrl,
     });
+    applyImageRefs(newPost, req.fileRefs);
+
     await newPost.save();
     await newPost.populate("authorId", "name profileImage department academicLevel");
     res.status(201).json(newPost);
@@ -97,7 +109,6 @@ const getPosts = async (req, res) => {
 
 const updatePost = async (req, res) => {
   const { text } = req.body;
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
   try {
     const post = await Post.findById(req.params.id);
@@ -114,16 +125,19 @@ const updatePost = async (req, res) => {
       return res.status(403).json({ msg: "Not authorized" });
     }
 
-    if (post.reshareOf && imageUrl) {
+    if (post.reshareOf && req.fileRefs?.length) {
       return res.status(400).json({ msg: "Cannot change image on a reshare" });
     }
 
     if (text !== undefined) {
       post.text = text.trim();
     }
-    if (imageUrl) {
-      post.imageUrl = imageUrl;
+
+    if (req.fileRefs?.length) {
+      await deleteAllPostImages(post, deleteFileRef);
+      applyImageRefs(post, req.fileRefs);
     }
+
     await post.save();
     await post.populate("authorId", "name profileImage department academicLevel");
     res.json(post);
@@ -149,6 +163,7 @@ const deletePost = async (req, res) => {
       return res.status(403).json({ msg: "Not authorized" });
     }
 
+    await deleteAllPostImages(post, deleteFileRef);
     await Post.findByIdAndDelete(req.params.id);
     res.json({ msg: "Post removed" });
   } catch (err) {
@@ -163,4 +178,5 @@ module.exports = {
   updatePost,
   createPost,
   resharePost,
+  getPostImageUrls,
 };

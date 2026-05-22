@@ -3,6 +3,8 @@ import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import VerifyEmail from "./pages/VerifyEmail";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import Home from "./pages/Home";
 import Materials from "./pages/Materials";
 import Messaging from "./pages/Messaging";
@@ -29,6 +31,8 @@ const AppRoutes = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route
             path="/home"
             element={

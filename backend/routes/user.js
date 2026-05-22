@@ -9,6 +9,7 @@ const {
 } = require("../controllers/userController");
 const { protect } = require("../middleware/requireAuth");
 const { upload, handleUploadError } = require("../utils/upload");
+const { persistUpload, deleteFileRef } = require("../utils/fileStorage");
 const User = require("../models/User");
 const { normalizeContact } = require("../utils/contact");
 
@@ -193,9 +194,15 @@ router.get("/:id", protect, async (req, res) => {
 });
 
 // Update current user's profile
-router.put("/me", protect, upload.single("profileImage"), handleUploadError, async (req, res) => {
+router.put(
+  "/me",
+  protect,
+  upload.single("profileImage"),
+  handleUploadError,
+  persistUpload,
+  async (req, res) => {
   const { contact, academicLevel } = req.body;
-  const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
+  const profileImage = req.fileRef || null;
 
   try {
     // Use req.user._id to update the current logged-in user's profile
@@ -229,7 +236,13 @@ router.put("/me", protect, upload.single("profileImage"), handleUploadError, asy
       user.academicLevel = academicLevelNum;
     }
     
-    if (profileImage) user.profileImage = profileImage;
+    if (profileImage) {
+      const previous = user.profileImage;
+      user.profileImage = profileImage;
+      if (previous && previous !== profileImage) {
+        await deleteFileRef(previous);
+      }
+    }
 
     await user.save();
 
@@ -238,7 +251,8 @@ router.put("/me", protect, upload.single("profileImage"), handleUploadError, asy
     console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
-});
+  }
+);
 
 // Send friend request
 router.post("/friend-request/:id", protect, async (req, res) => {

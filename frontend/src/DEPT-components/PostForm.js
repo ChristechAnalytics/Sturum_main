@@ -1,54 +1,70 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { GoFileMedia } from "react-icons/go";
 import { MdEvent } from "react-icons/md";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { MAX_POST_IMAGES } from "../utils/posts";
 
 const PostForm = ({ onPost, onClose }) => {
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuthContext();
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    const urls = images.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, [images]);
+
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+
+    const combined = [...images, ...picked].slice(0, MAX_POST_IMAGES);
+    if (images.length + picked.length > MAX_POST_IMAGES) {
+      setError(`You can attach up to ${MAX_POST_IMAGES} images per post`);
+    } else {
+      setError(null);
+    }
+    setImages(combined);
+    e.target.value = "";
+  };
+
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // Validate text
     if (!text.trim()) {
       setError("Text cannot be empty");
       return;
     }
 
-    // Ensure department is available
     if (!user.department) {
       setError("Department is required");
       return;
     }
 
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append("text", text);
     formData.append("department", user.department);
-    if (image) {
-      formData.append("image", image);
-    }
+    images.forEach((file) => formData.append("images", file));
 
     try {
       await onPost(formData);
       setText("");
-      setImage(null);
-      // Close modal after successful post creation
-      if (onClose) {
-        onClose();
-      }
+      setImages([]);
+      if (onClose) onClose();
     } catch (err) {
       console.error("Error creating post", err);
       setError(err.message || "Error creating post");
@@ -58,7 +74,7 @@ const PostForm = ({ onPost, onClose }) => {
   };
 
   const triggerFileInput = () => {
-    fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
   return (
@@ -70,38 +86,52 @@ const PostForm = ({ onPost, onClose }) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           required
-        ></textarea>
+        />
       </div>
-        <div className="flex justify-start items-center pt-4 gap-4">
-          <div
-            className="flex justify-center items-center px-3 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors"
-            onClick={triggerFileInput}
-          >
-            <GoFileMedia className="mr-2 text-xl text-neutral-600" />
-            <p className="text-neutral-600 font-medium">Media</p>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mb-2"
-              style={{ display: "none" }}
-            />
-          </div>
-          <div className="flex justify-center items-center px-3 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors">
-            <MdEvent className="mr-2 text-xl text-neutral-600" />
-            <p className="text-neutral-600 font-medium">Event</p>
-          </div>
+      <div className="flex justify-start items-center pt-4 gap-4 flex-wrap">
+        <button
+          type="button"
+          className="flex justify-center items-center px-3 py-2 rounded-lg hover:bg-neutral-100 cursor-pointer transition-colors border-0 bg-transparent"
+          onClick={triggerFileInput}
+        >
+          <GoFileMedia className="mr-2 text-xl text-neutral-600" />
+          <p className="text-neutral-600 font-medium">
+            Media {images.length > 0 && `(${images.length}/${MAX_POST_IMAGES})`}
+          </p>
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+          className="hidden"
+        />
+        <div className="flex justify-center items-center px-3 py-2 rounded-lg text-neutral-400">
+          <MdEvent className="mr-2 text-xl" />
+          <p className="font-medium text-sm">Event (soon)</p>
         </div>
+      </div>
 
-      {image && (
-        <div className="mt-2">
-          {/* <p className="text-sm text-green-500">Selected file: {image.name}</p> */}
-          <img
-            src={URL.createObjectURL(image)}
-            alt="Preview"
-            className="mt-4 w-32 h-32 object-cover rounded-lg border-2 border-neutral-200"
-          />
+      {previewUrls.length > 0 && (
+        <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {previewUrls.map((url, index) => (
+            <div key={url} className="relative">
+              <img
+                src={url}
+                alt={`Preview ${index + 1}`}
+                className="w-full h-24 object-cover rounded-lg border-2 border-neutral-200"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-1 right-1 bg-neutral-900/70 text-white text-xs w-6 h-6 rounded-full hover:bg-red-600"
+                aria-label="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -114,7 +144,7 @@ const PostForm = ({ onPost, onClose }) => {
           {isSubmitting ? "Posting..." : "Post"}
         </button>
       </div>
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+      {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
     </form>
   );
 };

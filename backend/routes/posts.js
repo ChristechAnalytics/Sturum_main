@@ -9,6 +9,8 @@ const {
   resharePost,
 } = require("../controllers/postController");
 const { upload, handleUploadError } = require("../utils/upload");
+const { persistUploads } = require("../utils/fileStorage");
+const { MAX_POST_IMAGES } = require("../utils/postImages");
 const Post = require("../models/Post");
 const User = require("../models/User");
 const { emitToDepartment, serializeComment } = require("../utils/socketEmit");
@@ -22,7 +24,14 @@ const assertPostAccess = async (postId, user) => {
   return { post };
 };
 
-router.post("/", protect, upload.single("image"), handleUploadError, createPost);
+router.post(
+  "/",
+  protect,
+  upload.array("images", MAX_POST_IMAGES),
+  handleUploadError,
+  persistUploads,
+  createPost
+);
 
 router.get("/:id/reshare-status", protect, async (req, res) => {
   try {
@@ -178,7 +187,14 @@ router.get("/:postId/comments", protect, async (req, res) => {
 });
 
 router.get("/", protect, getPosts);
-router.put("/:id", protect, upload.single("image"), handleUploadError, updatePost);
+router.put(
+  "/:id",
+  protect,
+  upload.array("images", MAX_POST_IMAGES),
+  handleUploadError,
+  persistUploads,
+  updatePost
+);
 router.delete("/:id", protect, deletePost);
 
 module.exports = router;

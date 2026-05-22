@@ -193,6 +193,7 @@ const Home = () => {
             _id={post._id}
             text={post.text}
             image={post.imageUrl}
+            imageUrls={post.imageUrls}
             createdAt={post.createdAt}
             author={post.authorId}
             authorId={post.authorId?._id}
